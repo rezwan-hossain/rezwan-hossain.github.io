@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>40 Linux Commands You Actually Need · Rezwan Hossain</title>
+    <meta
+      name="description"
+      content="The 40 Linux commands you need for server and DevOps work, with simple explanations and examples."
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="blog.css" />
+  </head>
+  <body>
+    <article class="container post">
+      <header>
+        <a class="back" href="index.html">← all posts</a>
+        <h1>40 Linux Commands You Actually Need</h1>
+        <p class="date">Nov 3, 2026</p>
+      </header>
+
+      <p>
+        These are the commands I use almost every day when working on Linux
+        servers. If you're getting into sysadmin, DevOps or security work,
+        start here.
+      </p>
+      <p>
+        If you only learn ten, learn these first: <code>ls</code>,
+        <code>cd</code>, <code>pwd</code>, <code>mkdir</code>,
+        <code>cp</code>, <code>mv</code>, <code>grep</code>,
+        <code>find</code>, <code>chmod</code> and <code>sudo</code>.
+      </p>
+
+      <h2>Cheat Sheet</h2>
+      <div class="cheatsheet">
+        <div class="group">
+          <div class="group-head"><span>A. File &amp; directory management</span><span class="level">beginner</span></div>
+          <table>
+            <tr><td class="num">01</td><td><a href="#pwd">pwd</a></td><td>Print working directory<span class="hint"><b>p</b>rint <b>w</b>orking <b>d</b>irectory</span></td></tr>
+            <tr><td class="num">02</td><td><a href="#ls">ls</a></td><td>List files and directories<span class="hint"><b>l</b>i<b>s</b>t · -lah = long, all, human</span></td></tr>
+            <tr><td class="num">03</td><td><a href="#cd">cd</a></td><td>Change directory<span class="hint"><b>c</b>hange <b>d</b>irectory</span></td></tr>
+            <tr><td class="num">04</td><td><a href="#mkdir">mkdir</a></td><td>Create a directory<span class="hint"><b>m</b>a<b>k</b>e <b>dir</b>ectory</span></td></tr>
+            <tr><td class="num">05</td><td><a href="#touch">touch</a></td><td>Create an empty file<span class="hint">"touch" a file to create it or update its time</span></td></tr>
+            <tr><td class="num">06</td><td><a href="#cp">cp</a></td><td>Copy files and directories<span class="hint"><b>c</b>o<b>p</b>y</span></td></tr>
+            <tr><td class="num">07</td><td><a href="#mv">mv</a></td><td>Move or rename files<span class="hint"><b>m</b>o<b>v</b>e</span></td></tr>
+            <tr><td class="num">08</td><td><a href="#rm">rm</a></td><td>Delete files and directories<span class="hint"><b>r</b>e<b>m</b>ove</span></td></tr>
+          </table>
+        </div>
+        <div class="group">
+          <div class="group-head"><span>B. File reading &amp; editing</span><span class="level">beginner</span></div>
+          <table>
+            <tr><td class="num">09</td><td><a href="#cat">cat</a></td><td>Display file contents<span class="hint">con<b>cat</b>enate (join files)</span></td></tr>
+            <tr><td class="num">10</td><td><a href="#less">less</a></td><td>Read large files page by page<span class="hint">replaced "more", because less is more</span></td></tr>
+            <tr><td class="num">11</td><td><a href="#nano">nano</a></td><td>Edit text files<span class="hint">nano = small, a tiny editor</span></td></tr>
+            <tr><td class="num">12</td><td><a href="#vim">vim</a></td><td>Advanced terminal text editor<span class="hint"><b>vi</b> i<b>m</b>proved</span></td></tr>
+          </table>
+        </div>
+        <div class="group">
+          <div class="group-head"><span>C. Searching &amp; permissions</span><span class="level">intermediate</span></div>
+          <table>
+            <tr><td class="num">13</td><td><a href="#grep">grep</a></td><td>Search text inside files<span class="hint"><b>g</b>lobal <b>r</b>egular <b>e</b>xpression <b>p</b>rint</span></td></tr>
+            <tr><td class="num">14</td><td><a href="#find">find</a></td><td>Find files and directories<span class="hint">just what it says: find</span></td></tr>
+            <tr><td class="num">15</td><td><a href="#chmod">chmod</a></td><td>Change file permissions<span class="hint"><b>ch</b>ange <b>mod</b>e · r=4 w=2 x=1, so 7=rwx</span></td></tr>
+            <tr><td class="num">16</td><td><a href="#chown">chown</a></td><td>Change file ownership<span class="hint"><b>ch</b>ange <b>own</b>er</span></td></tr>
+            <tr><td class="num">17</td><td><a href="#sudo">sudo</a></td><td>Run commands as admin<span class="hint"><b>s</b>uper<b>u</b>ser <b>do</b></span></td></tr>
+            <tr><td class="num">18</td><td><a href="#apt">apt</a></td><td>Install and manage packages (Ubuntu/Debian)<span class="hint"><b>A</b>dvanced <b>P</b>ackage <b>T</b>ool</span></td></tr>
+          </table>
+        </div>
+        <div class="group">
+          <div class="group-head"><span>D. System administration</span><span class="level">admin</span></div>
+          <table>
+            <tr><td class="num">19</td><td><a href="#ps">ps</a></td><td>Display running processes<span class="hint"><b>p</b>rocess <b>s</b>tatus</span></td></tr>
+            <tr><td class="num">20</td><td><a href="#top">top</a></td><td>Monitor CPU, memory and processes<span class="hint">shows the <b>top</b> processes</span></td></tr>
+            <tr><td class="num">21</td><td><a href="#kill">kill</a></td><td>Send signals to processes<span class="hint">sends a signal, usually "stop"</span></td></tr>
+            <tr><td class="num">22</td><td><a href="#df">df</a></td><td>Check disk space<span class="hint"><b>d</b>isk <b>f</b>ree</span></td></tr>
+            <tr><td class="num">23</td><td><a href="#du">du</a></td><td>Check directory storage usage<span class="hint"><b>d</b>isk <b>u</b>sage</span></td></tr>
+            <tr><td class="num">24</td><td><a href="#ip">ip</a></td><td>View and manage network information<span class="hint"><b>I</b>nternet <b>P</b>rotocol</span></td></tr>
+            <tr><td class="num">25</td><td><a href="#systemctl">systemctl</a></td><td>Manage Linux services<span class="hint"><b>system</b> <b>c</b>on<b>t</b>ro<b>l</b></span></td></tr>
+          </table>
+        </div>
+        <div class="group">
+          <div class="group-head"><span>E. DevOps essentials</span><span class="level">devops</span></div>
+          <table>
+            <tr><td class="num">26</td><td><a href="#ssh">ssh</a></td><td>Log in to a remote server<span class="hint"><b>s</b>ecure <b>sh</b>ell</span></td></tr>
+            <tr><td class="num">27</td><td><a href="#scp">scp</a></td><td>Copy files to or from a server<span class="hint"><b>s</b>ecure <b>c</b>o<b>p</b>y</span></td></tr>
+            <tr><td class="num">28</td><td><a href="#rsync">rsync</a></td><td>Sync folders, only copies what changed<span class="hint"><b>r</b>emote <b>sync</b></span></td></tr>
+            <tr><td class="num">29</td><td><a href="#curl">curl</a></td><td>Test URLs and APIs, download files<span class="hint"><b>c</b>lient <b>URL</b></span></td></tr>
+            <tr><td class="num">30</td><td><a href="#tar">tar</a></td><td>Pack and unpack .tar.gz archives<span class="hint"><b>t</b>ape <b>ar</b>chive · czf = Create Zipped File</span></td></tr>
+            <tr><td class="num">31</td><td><a href="#tail">tail</a></td><td>Show the end of a file, or watch it live<span class="hint">the <b>tail</b> (end) of a file</span></td></tr>
+            <tr><td class="num">32</td><td><a href="#journalctl">journalctl</a></td><td>Read service logs<span class="hint"><b>journal</b> <b>c</b>on<b>t</b>ro<b>l</b></span></td></tr>
+            <tr><td class="num">33</td><td><a href="#ss">ss</a></td><td>Show open ports and connections<span class="hint"><b>s</b>ocket <b>s</b>tatistics · -tulpn</span></td></tr>
+            <tr><td class="num">34</td><td><a href="#ping">ping</a></td><td>Check if a host is reachable<span class="hint">like a sonar "ping", waits for an echo back</span></td></tr>
+            <tr><td class="num">35</td><td><a href="#dig">dig</a></td><td>Check DNS records<span class="hint"><b>d</b>omain <b>i</b>nformation <b>g</b>roper</span></td></tr>
+            <tr><td class="num">36</td><td><a href="#crontab">crontab</a></td><td>Schedule jobs to run automatically<span class="hint"><b>cron</b> (chronos = time) <b>tab</b>le</span></td></tr>
+            <tr><td class="num">37</td><td><a href="#useradd">useradd</a></td><td>Create users and manage groups<span class="hint"><b>user</b> + <b>add</b></span></td></tr>
+            <tr><td class="num">38</td><td><a href="#free">free</a></td><td>Check memory usage<span class="hint"><b>free</b> memory</span></td></tr>
+            <tr><td class="num">39</td><td><a href="#export">export</a></td><td>Set environment variables<span class="hint"><b>export</b> a variable to programs</span></td></tr>
+            <tr><td class="num">40</td><td><a href="#ln">ln</a></td><td>Create shortcuts (symlinks)<span class="hint"><b>l</b>i<b>n</b>k · -s = symbolic</span></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <h2>Commands by Task</h2>
+      <p>
+        Don't try to remember the list. Remember the job. When something
+        happens, these are the commands I run, in this order.
+      </p>
+      <div class="tasks">
+        <div class="task">
+          <p class="task-title">"The site is down"</p>
+          <p class="task-cmds"><code>systemctl status nginx</code> <span>→</span> <code>journalctl -u nginx</code> <span>→</span> <code>ss -tulpn</code> <span>→</span> <code>curl -I localhost</code></p>
+        </div>
+        <div class="task">
+          <p class="task-title">"The server is slow"</p>
+          <p class="task-cmds"><code>top</code> <span>→</span> <code>free -h</code> <span>→</span> <code>df -h</code> <span>→</span> <code>du -sh /var/*</code></p>
+        </div>
+        <div class="task">
+          <p class="task-title">"The disk is full"</p>
+          <p class="task-cmds"><code>df -h</code> <span>→</span> <code>du -sh /var/* | sort -h</code> <span>→</span> <code>find / -size +500M</code> <span>→</span> <code>rm</code></p>
+        </div>
+        <div class="task">
+          <p class="task-title">"Port is already in use"</p>
+          <p class="task-cmds"><code>ss -tulpn | grep :3000</code> <span>→</span> <code>ps aux | grep node</code> <span>→</span> <code>kill PID</code></p>
+        </div>
+        <div class="task">
+          <p class="task-title">"Permission denied"</p>
+          <p class="task-cmds"><code>ls -l</code> <span>→</span> <code>chmod</code> <span>→</span> <code>chown</code> <span>→</span> <code>sudo</code></p>
+        </div>
+        <div class="task">
+          <p class="task-title">"Can't reach the server or domain"</p>
+          <p class="task-cmds"><code>ping</code> <span>→</span> <code>dig +short</code> <span>→</span> <code>ip addr</code> <span>→</span> <code>ip route</code></p>
+        </div>
+        <div class="task">
+          <p class="task-title">"Find an error in the logs"</p>
+          <p class="task-cmds"><code>tail -f</code> <span>→</span> <code>grep -i "error"</code> <span>→</span> <code>less</code> <span>→</span> <code>journalctl -u</code></p>
+        </div>
+        <div class="task">
+          <p class="task-title">"Deploy something"</p>
+          <p class="task-cmds"><code>ssh</code> <span>→</span> <code>rsync -avz</code> <span>→</span> <code>tar -xzf</code> <span>→</span> <code>systemctl restart</code></p>
+        </div>
+        <div class="task">
+          <p class="task-title">"Set up a new server"</p>
+          <p class="task-cmds"><code>apt update</code> <span>→</span> <code>useradd -m</code> <span>→</span> <code>usermod -aG sudo</code> <span>→</span> <code>ssh-copy-id</code> <span>→</span> <code>systemctl enable</code></p>
+        </div>
+        <div class="task">
+          <p class="task-title">"Back up files every night"</p>
+          <p class="task-cmds"><code>tar -czf</code> <span>→</span> <code>rsync -avz</code> <span>→</span> <code>crontab -e</code></p>
+        </div>
+      </div>
+
+      <h2>Files and Folders</h2>
+
+      <h3 id="pwd">1. pwd</h3>
+      <p>Shows the folder you're in right now. Useful when you get lost.</p>
+      <p>Example:</p>
+      <pre><code>pwd
+/home/rezwan</code></pre>
+
+      <h3 id="ls">2. ls</h3>
+      <p>
+        Lists files and folders. Add <code>-l</code> for details,
+        <code>-a</code> to show hidden files and <code>-h</code> for
+        readable sizes.
+      </p>
+      <p>Example:</p>
+      <pre><code>ls
+ls -lah</code></pre>
+
+      <h3 id="cd">3. cd</h3>
+      <p>Changes the folder you're in.</p>
+      <p>Example:</p>
+      <pre><code>cd /var/log     # go to a folder
+cd ..           # go up one folder
+cd ~            # go to your home folder
+cd -            # go back to the last folder</code></pre>
+
+      <h3 id="mkdir">4. mkdir</h3>
+      <p>Creates a new folder. Use <code>-p</code> to create folders inside folders in one go.</p>
+      <p>Example:</p>
+      <pre><code>mkdir test
+mkdir -p projects/app/logs</code></pre>
+
+      <h3 id="touch">5. touch</h3>
+      <p>Creates an empty file. If the file already exists, it just updates its time.</p>
+      <p>Example:</p>
+      <pre><code>touch file.txt</code></pre>
+
+      <h3 id="cp">6. cp</h3>
+      <p>Copies files. Use <code>-r</code> to copy a whole folder.</p>
+      <p>Example:</p>
+      <pre><code>cp file.txt backup.txt
+cp -r website website-backup</code></pre>
+
+      <h3 id="mv">7. mv</h3>
+      <p>Moves a file to another place. It's also how you rename a file in Linux.</p>
+      <p>Example:</p>
+      <pre><code>mv backup.txt newfile.txt        # rename
+mv newfile.txt /tmp/             # move</code></pre>
+
+      <h3 id="rm">8. rm</h3>
+      <p>
+        Deletes files. Use <code>-r</code> to delete a folder. Be careful:
+        there's no recycle bin, so deleted files are gone for good.
+      </p>
+      <p>Example:</p>
+      <pre><code>rm newfile.txt
+rm -r old-folder</code></pre>
+
+      <h2>Reading and Editing Files</h2>
+
+      <h3 id="cat">9. cat</h3>
+      <p>Prints the whole file in the terminal. Best for short files.</p>
+      <p>Example:</p>
+      <pre><code>cat file.txt</code></pre>
+
+      <h3 id="less">10. less</h3>
+      <p>
+        Opens big files one page at a time. Use the arrow keys to scroll,
+        <code>/word</code> to search and <code>q</code> to quit.
+      </p>
+      <p>Example:</p>
+      <pre><code>less /var/log/syslog</code></pre>
+
+      <h3 id="nano">11. nano</h3>
+      <p>
+        A simple text editor, good for beginners. Press
+        <code>Ctrl+O</code> to save and <code>Ctrl+X</code> to exit.
+      </p>
+      <p>Example:</p>
+      <pre><code>nano /etc/hosts</code></pre>
+
+      <h3 id="vim">12. vim</h3>
+      <p>
+        A powerful editor that's on almost every server. Press
+        <code>i</code> to start typing, then <code>Esc</code> and
+        <code>:wq</code> to save and quit. <code>:q!</code> quits without
+        saving.
+      </p>
+      <p>Example:</p>
+      <pre><code>vim config.yml</code></pre>
+
+      <h2>Searching</h2>
+
+      <h3 id="grep">13. grep</h3>
+      <p>
+        Searches for text inside files. <code>-i</code> ignores upper and
+        lower case, <code>-r</code> searches inside folders and
+        <code>-n</code> shows line numbers.
+      </p>
+      <p>Example:</p>
+      <pre><code>grep "error" /var/log/syslog
+grep -rin "password" /etc/</code></pre>
+
+      <h3 id="find">14. find</h3>
+      <p>Finds files and folders by name, type, size or date.</p>
+      <p>Example:</p>
+      <pre><code>find /home -name "*.txt"
+find /var/log -size +100M
+find . -type d -name "node_modules"</code></pre>
+
+      <h2>Permissions and Packages</h2>
+
+      <h3 id="chmod">15. chmod</h3>
+      <p>
+        Changes who can read, write or run a file. <code>755</code> means the
+        owner can do everything, and others can only read and run it.
+      </p>
+      <p>Example:</p>
+      <pre><code>chmod 755 script.sh
+chmod +x script.sh      # make it runnable</code></pre>
+
+      <h3 id="chown">16. chown</h3>
+      <p>Changes the owner of a file. Use <code>-R</code> to change a whole folder.</p>
+      <p>Example:</p>
+      <pre><code>sudo chown rezwan:rezwan file.txt
+sudo chown -R www-data:www-data /var/www</code></pre>
+
+      <h3 id="sudo">17. sudo</h3>
+      <p>
+        Runs a command as the admin (root) user. You need it for anything
+        that changes the system, like installing software or editing system
+        files.
+      </p>
+      <p>Example:</p>
+      <pre><code>sudo apt update</code></pre>
+
+      <h3 id="apt">18. apt</h3>
+      <p>
+        Installs, updates and removes software on Ubuntu and Debian. On
+        RHEL, Rocky or Fedora, use <code>dnf</code> instead.
+      </p>
+      <p>Example:</p>
+      <pre><code>sudo apt update            # refresh the package list
+sudo apt install nginx     # install
+sudo apt upgrade           # update everything
+sudo apt remove nginx      # uninstall</code></pre>
+
+      <h2>Processes</h2>
+
+      <h3 id="ps">19. ps</h3>
+      <p>Shows running processes. Pair it with grep to find a specific one.</p>
+      <p>Example:</p>
+      <pre><code>ps aux
+ps aux | grep nginx</code></pre>
+
+      <h3 id="top">20. top</h3>
+      <p>
+        Shows live CPU and memory usage, and which processes use the most.
+        Press <code>q</code> to quit. <code>htop</code> is a nicer version
+        if it's installed.
+      </p>
+      <p>Example:</p>
+      <pre><code>top</code></pre>
+
+      <h3 id="kill">21. kill</h3>
+      <p>
+        Stops a process using its PID (the number from <code>ps</code> or
+        <code>top</code>). Use <code>-9</code> only if it won't stop normally.
+      </p>
+      <p>Example:</p>
+      <pre><code>kill 1234
+kill -9 1234</code></pre>
+
+      <h2>Disk and Network</h2>
+
+      <h3 id="df">22. df</h3>
+      <p>Shows how much space is free on each disk. The first thing to check when a server acts weird.</p>
+      <p>Example:</p>
+      <pre><code>df -h</code></pre>
+
+      <h3 id="du">23. du</h3>
+      <p>Shows how much space a folder uses. Great for finding what filled up the disk.</p>
+      <p>Example:</p>
+      <pre><code>du -sh /home
+du -sh /var/* | sort -h</code></pre>
+
+      <h3 id="ip">24. ip</h3>
+      <p>Shows network info like IP addresses and routes. It replaces the older <code>ifconfig</code>.</p>
+      <p>Example:</p>
+      <pre><code>ip addr      # your IP addresses
+ip route     # your gateway and routes</code></pre>
+
+      <h2>Services</h2>
+
+      <h3 id="systemctl">25. systemctl</h3>
+      <p>
+        Starts, stops and checks services like nginx or ssh. Use
+        <code>enable</code> to make a service start on boot.
+      </p>
+      <p>Example:</p>
+      <pre><code>systemctl status nginx
+sudo systemctl start nginx
+sudo systemctl stop nginx
+sudo systemctl restart nginx
+sudo systemctl enable nginx</code></pre>
+
+      <h2>DevOps Essentials</h2>
+      <p>
+        These are the commands you need once you start working on remote
+        servers: connecting, moving files, reading logs and checking the
+        network.
+      </p>
+      <p>
+        One thing to learn first is the pipe <code>|</code>. It sends the
+        output of one command into the next one, so you can combine small
+        commands into useful ones.
+      </p>
+      <p>Example:</p>
+      <pre><code>grep "error" app.log | wc -l        # count error lines
+ps aux | grep nginx                 # find a process
+ls -lt | head -5                    # 5 newest files</code></pre>
+
+      <h3 id="ssh">26. ssh</h3>
+      <p>
+        Connects you to a remote server's terminal. Most people use SSH keys
+        instead of passwords because they're safer.
+      </p>
+      <p>Example:</p>
+      <pre><code>ssh user@192.0.2.10
+ssh -i key.pem ubuntu@192.0.2.10     # log in with a key file
+ssh-keygen -t ed25519                # create your own key
+ssh-copy-id user@192.0.2.10          # copy your key to the server</code></pre>
+
+      <h3 id="scp">27. scp</h3>
+      <p>Copies files between your computer and a server over SSH. Use <code>-r</code> for folders.</p>
+      <p>Example:</p>
+      <pre><code>scp app.zip user@192.0.2.10:/home/user/     # upload
+scp user@192.0.2.10:/var/log/app.log .       # download
+scp -r dist user@192.0.2.10:/var/www/        # upload a folder</code></pre>
+
+      <h3 id="rsync">28. rsync</h3>
+      <p>
+        Like scp, but smarter. It only copies files that changed, so it's
+        great for deployments and backups.
+      </p>
+      <p>Example:</p>
+      <pre><code>rsync -avz dist/ user@192.0.2.10:/var/www/site/
+rsync -avz --delete dist/ user@192.0.2.10:/var/www/site/   # also remove deleted files</code></pre>
+
+      <h3 id="curl">29. curl</h3>
+      <p>
+        Sends requests to URLs from the terminal. Use it to test APIs, check
+        if a site is up or download files.
+      </p>
+      <p>Example:</p>
+      <pre><code>curl https://example.com
+curl -I https://example.com                  # headers only (status code)
+curl -O https://example.com/file.zip         # download a file
+curl -X POST -H "Content-Type: application/json" \
+     -d '{"name":"test"}' https://api.example.com/users</code></pre>
+
+      <h3 id="tar">30. tar</h3>
+      <p>
+        Packs many files into one archive, or unpacks it. <code>c</code> =
+        create, <code>x</code> = extract, <code>z</code> = gzip,
+        <code>f</code> = file name.
+      </p>
+      <p>Example:</p>
+      <pre><code>tar -czf backup.tar.gz /var/www       # create
+tar -xzf backup.tar.gz                # extract
+tar -tzf backup.tar.gz                # list what's inside</code></pre>
+
+      <h3 id="tail">31. tail</h3>
+      <p>
+        Shows the last lines of a file. With <code>-f</code> it keeps
+        watching the file and shows new lines live. Press
+        <code>Ctrl+C</code> to stop.
+      </p>
+      <p>Example:</p>
+      <pre><code>tail -n 50 app.log
+tail -f /var/log/nginx/access.log</code></pre>
+
+      <h3 id="journalctl">32. journalctl</h3>
+      <p>
+        Shows logs for systemd services. When a service won't start, this is
+        where you find out why.
+      </p>
+      <p>Example:</p>
+      <pre><code>journalctl -u nginx                   # logs for nginx
+journalctl -u nginx -f                # watch live
+journalctl -u nginx --since "1 hour ago"</code></pre>
+
+      <h3 id="ss">33. ss</h3>
+      <p>
+        Shows which ports are open and which program is using them. Useful
+        when an app says "port already in use".
+      </p>
+      <p>Example:</p>
+      <pre><code>sudo ss -tulpn
+sudo ss -tulpn | grep :80</code></pre>
+
+      <h3 id="ping">34. ping</h3>
+      <p>Checks if a server is reachable and how fast it answers. Use <code>-c</code> to stop after a few tries.</p>
+      <p>Example:</p>
+      <pre><code>ping -c 4 google.com</code></pre>
+
+      <h3 id="dig">35. dig</h3>
+      <p>
+        Checks DNS records for a domain. Handy after you point a domain to a
+        new server. I wrote more about DNS in
+        <a href="dns-interview-questions.html">this post</a>.
+      </p>
+      <p>Example:</p>
+      <pre><code>dig +short example.com
+dig example.com MX</code></pre>
+
+      <h3 id="crontab">36. crontab</h3>
+      <p>
+        Runs commands on a schedule, like a daily backup. The five fields
+        are minute, hour, day, month and weekday.
+      </p>
+      <p>Example:</p>
+      <pre><code>crontab -e        # edit your scheduled jobs
+crontab -l        # list them
+
+# run backup.sh every day at 2:00 AM
+0 2 * * * /home/user/backup.sh</code></pre>
+
+      <h3 id="useradd">37. useradd</h3>
+      <p>
+        Creates a new user. Use <code>usermod</code> to add a user to a group,
+        and don't forget the <code>-a</code>, or the user gets removed from
+        their other groups.
+      </p>
+      <p>Example:</p>
+      <pre><code>sudo useradd -m -s /bin/bash deploy   # create user with home folder
+sudo passwd deploy                    # set password
+sudo usermod -aG sudo deploy          # give admin rights
+sudo usermod -aG docker deploy        # allow using docker</code></pre>
+
+      <h3 id="free">38. free</h3>
+      <p>
+        Shows how much memory (RAM) is used and free. <code>uptime</code> is
+        a good partner: it shows how long the server has been running and
+        how busy it is.
+      </p>
+      <p>Example:</p>
+      <pre><code>free -h
+uptime</code></pre>
+
+      <h3 id="export">39. export</h3>
+      <p>
+        Sets an environment variable. Apps read these for settings like
+        passwords or API keys. It only lasts until you close the terminal,
+        unless you add it to <code>~/.bashrc</code>.
+      </p>
+      <p>Example:</p>
+      <pre><code>export NODE_ENV=production
+echo $NODE_ENV           # show one variable
+env                      # show all variables</code></pre>
+
+      <h3 id="ln">40. ln</h3>
+      <p>
+        Creates a link to another file or folder. With <code>-s</code> it
+        makes a symlink, which works like a shortcut. Nginx uses this to
+        turn sites on.
+      </p>
+      <p>Example:</p>
+      <pre><code>sudo ln -s /etc/nginx/sites-available/mysite /etc/nginx/sites-enabled/</code></pre>
+
+      <h2>What to Learn First</h2>
+      <table>
+        <tr><th>Level</th><th>Commands</th></tr>
+        <tr><td>Beginner</td><td>1–12: moving around, files, reading and editing</td></tr>
+        <tr><td>Intermediate</td><td>13–18: searching, permissions, packages</td></tr>
+        <tr><td>Sysadmin</td><td>19–25: processes, disk, network, services</td></tr>
+        <tr><td>DevOps</td><td>26–40: remote servers, logs, scheduling, users</td></tr>
+      </table>
+
+      <p><a href="index.html">← all posts</a></p>
+    </article>
+  </body>
+</html>

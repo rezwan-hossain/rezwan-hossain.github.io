@@ -173,3 +173,141 @@
     font-size: 12px;
   }
 }
+
+/* cheat sheet */
+
+.cheatsheet {
+  display: grid;
+  gap: 20px;
+}
+
+.cheatsheet .group {
+  border: 1px solid #333;
+  background: #19191b;
+}
+
+.cheatsheet .group-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid #333;
+  background: #232325;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.cheatsheet .level {
+  padding: 0 8px;
+  border: 1px solid #555;
+  color: #999;
+  font-size: 12px;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.cheatsheet table {
+  margin: 0;
+  table-layout: fixed;
+  font-size: 14px;
+}
+
+.cheatsheet td:nth-child(2) {
+  width: 120px;
+}
+
+.cheatsheet td {
+  border: none;
+  border-bottom: 1px solid #262628;
+  padding: 7px 14px;
+}
+
+.cheatsheet tr:last-child td {
+  border-bottom: none;
+}
+
+.cheatsheet tr:hover td {
+  background: #202022;
+}
+
+.cheatsheet .num {
+  width: 30px;
+  color: #555;
+}
+
+.cheatsheet a {
+  color: #eee;
+  font-weight: bold;
+}
+
+.post h3[id] {
+  scroll-margin-top: 20px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+.cheatsheet .hint {
+  display: block;
+  color: #777;
+  font-size: 12px;
+}
+
+.cheatsheet .hint b {
+  color: #ccc;
+}
+
+@media (max-width: 500px) {
+  .cheatsheet td {
+    padding: 7px 8px;
+  }
+
+  .cheatsheet table {
+    font-size: 13px;
+  }
+
+  .cheatsheet td:nth-child(2) {
+    width: 80px;
+  }
+
+  .cheatsheet .num {
+    width: 20px;
+  }
+}
+
+/* commands by task */
+
+.tasks {
+  display: grid;
+  gap: 12px;
+}
+
+.task {
+  padding: 12px 14px;
+  border: 1px solid #333;
+  border-left: 2px solid #eee;
+  background: #19191b;
+}
+
+.post .task-title {
+  margin: 0 0 8px;
+  color: #eee;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.post .task-cmds {
+  margin: 0;
+  line-height: 2.2;
+}
+
+.task-cmds span {
+  margin: 0 4px;
+  color: #555;
+}
+
+.task-cmds code {
+  white-space: nowrap;
+}
