@@ -1,0 +1,476 @@
+/*
+  Styles for nginx-explained.html only.
+
+  How the animated diagrams work (no JavaScript):
+  - .viz       a box that holds one diagram
+  - .viz-row   boxes (.node) joined by lines (.wire) from left to right
+  - .packet    a dot that slides along a .wire, using @keyframes
+  - Each diagram repeats on a loop. animation-delay decides WHEN a dot
+    starts, so dots on different wires play one after another.
+*/
+
+
+/* ---------- colors used on this page ---------- */
+
+.post {
+  --line: #333;
+  --muted: #777;
+  --bright: #eee;
+  --panel: #19191b;
+  --node: #232325;
+  --bad: #e06c6c;
+  --warn: #d9a75a;
+  --good: #7fbf7f;
+}
+
+
+/* ---------- tables ---------- */
+
+/* long paths like /etc/nginx/sites-available/ wrap instead of
+   pushing the page wider than a phone screen */
+.post td {
+  overflow-wrap: anywhere;
+}
+
+/* restaurant ↔ web server table: right column is the "real" thing */
+.analogy td:first-child {
+  color: var(--muted);
+}
+
+.analogy td:first-child::after {
+  content: " →";
+  color: #555;
+}
+
+.analogy td:last-child {
+  color: var(--bright);
+}
+
+.analogy tr:hover td {
+  background: #202022;
+}
+
+/* error table: colored status codes */
+.errors td:first-child {
+  white-space: nowrap;
+  font-weight: bold;
+}
+
+.errors .s5 {
+  color: var(--bad);
+}
+
+.errors .s4 {
+  color: var(--warn);
+}
+
+
+/* ---------- highlighted lines inside code blocks ---------- */
+
+.post pre .hl {
+  display: inline-block;
+  box-sizing: border-box;
+  min-width: calc(100% + 32px);
+  margin: 0 -16px;
+  padding: 0 16px 0 14px;
+  border-left: 2px solid var(--bright);
+  background: #232326;
+  color: #fff;
+}
+
+
+/* ---------- diagram box ---------- */
+
+.viz {
+  overflow: hidden;
+  margin: 24px 0;
+  padding: 28px 16px 14px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  transition: border-color 0.3s;
+}
+
+.viz:hover {
+  border-color: #555;
+}
+
+.viz-title {
+  margin: 0 0 22px;
+  color: #999;
+  font-size: 12px;
+}
+
+.viz-title + .viz-row,
+.viz-row + .viz-title {
+  margin-top: 0;
+}
+
+.viz-row + .viz-title {
+  margin-top: 28px;
+}
+
+.post .viz-caption {
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.viz-row {
+  display: flex;
+  align-items: center;
+}
+
+
+/* ---------- boxes (browser, nginx, app...) ---------- */
+
+.node {
+  flex: none;
+  padding: 8px 10px;
+  border: 1px solid #555;
+  background: var(--node);
+  color: var(--bright);
+  font-size: 12px;
+  line-height: 1.3;
+  text-align: center;
+  transition: box-shadow 0.2s;
+}
+
+.node small {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.node:hover {
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
+}
+
+/* NGINX itself: always glowing */
+.node.main {
+  border-color: var(--bright);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.25);
+}
+
+/* a server that is down or closed */
+.node.down {
+  border-style: dashed;
+  border-color: var(--bad);
+  color: var(--bad);
+}
+
+.node.down small {
+  color: var(--bad);
+}
+
+/* a server that isn't needed (cache hit) */
+.node.idle {
+  opacity: 0.35;
+}
+
+
+/* ---------- lines between boxes ---------- */
+
+.wire {
+  position: relative;
+  flex: 1;
+  min-width: 24px;
+  height: 2px;
+  background: var(--line);
+}
+
+/* encrypted part of the trip: dashed line */
+.wire.secure {
+  background: repeating-linear-gradient(90deg, var(--good) 0 6px, transparent 6px 10px);
+}
+
+/* line to a server that is down */
+.wire.cut {
+  background: repeating-linear-gradient(90deg, var(--bad) 0 3px, transparent 3px 8px);
+  opacity: 0.6;
+}
+
+/* small text above a line, like /logo.png */
+.wire-label {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--muted);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+/* several lines going out of NGINX (load balancing, static vs app) */
+.lanes {
+  display: flex;
+  flex: 2;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.lane {
+  display: flex;
+  align-items: center;
+}
+
+
+/* ---------- the moving dots ---------- */
+
+.packet {
+  position: absolute;
+  top: -4px;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--bright);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+  opacity: 0;
+}
+
+/* response: hollow dot */
+.packet.res {
+  border: 2px solid var(--bright);
+  background: var(--panel);
+}
+
+/* encrypted request: green square */
+.packet.locked {
+  border-radius: 2px;
+  background: var(--good);
+  box-shadow: 0 0 8px rgba(127, 191, 127, 0.6);
+}
+
+/* error response: red */
+.packet.err {
+  border-color: var(--bad);
+  box-shadow: 0 0 8px rgba(224, 108, 108, 0.6);
+}
+
+/* text that rides on top of a dot: <span class="packet" data-label="GET /"> */
+.packet[data-label]::after {
+  content: attr(data-label);
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #bbb;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.packet.err[data-label]::after {
+  color: var(--bad);
+}
+
+
+/* ---------- timing for each diagram ---------- */
+
+/* a new request arrives every second */
+.packet.in1 {
+  animation: go-all 1s linear infinite;
+}
+
+/* reverse proxy (4s loop):
+   0-1s browser → nginx, 1-2s nginx → app,
+   2-3s app → nginx,     3-4s nginx → browser */
+.proxy .packet {
+  animation: go-quarter 4s linear infinite;
+}
+
+.proxy .w2 .req { animation-delay: 1s; }
+.proxy .w2 .res { animation-name: back-quarter; animation-delay: 2s; }
+.proxy .w1 .res { animation-name: back-quarter; animation-delay: 3s; }
+
+/* boxes flash when a dot reaches them */
+.proxy .to-app { animation: hit 4s infinite 2s; }
+.proxy .to-browser { animation: hit 4s infinite 4s; }
+
+/* cache hit (4s loop): browser → nginx, straight back, then rest */
+.cached .packet {
+  animation: go-quarter 4s linear infinite;
+}
+
+.cached .res {
+  animation-name: back-quarter;
+  animation-delay: 1s;
+}
+
+/* https (2s loop): encrypted to nginx, then plain to the app */
+.https .packet {
+  animation: go-half 2s linear infinite;
+}
+
+.https .w2 .packet {
+  animation-delay: 1s;
+}
+
+/* static files vs app: alternate between the two lines */
+.packet.split-a { animation: go-half 2s linear infinite 1s; }
+.packet.split-b { animation: go-half 2s linear infinite 2s; }
+
+/* load balancing (3s loop): app 1, then app 2, then app 3 */
+.packet.lb { animation: go-third 3s linear infinite; }
+.packet.lb1 { animation-delay: 1s; }
+.packet.lb2 { animation-delay: 2s; }
+.packet.lb3 { animation-delay: 3s; }
+
+.node.s1 { animation: hit 3s infinite 2s; }
+.node.s2 { animation: hit 3s infinite 3s; }
+.node.s3 { animation: hit 3s infinite 4s; }
+
+/* failover (2s loop): app 2 is down, so only app 1 and app 3 get work */
+.packet.fo1 { animation: go-half 2s linear infinite 1s; }
+.packet.fo3 { animation: go-half 2s linear infinite 2s; }
+
+.node.f1 { animation: hit 2s infinite 2s; }
+.node.f3 { animation: hit 2s infinite 3s; }
+
+
+/* ---------- keyframes ---------- */
+
+/* move across the whole line, every loop */
+@keyframes go-all {
+  0% { left: 0; opacity: 1; }
+  95% { left: calc(100% - 10px); opacity: 1; }
+  100% { left: calc(100% - 10px); opacity: 0; }
+}
+
+/* move across in the first half of the loop, hide for the rest */
+@keyframes go-half {
+  0% { left: 0; opacity: 1; }
+  48% { left: calc(100% - 10px); opacity: 1; }
+  50%, 100% { left: calc(100% - 10px); opacity: 0; }
+}
+
+/* same, first third of the loop */
+@keyframes go-third {
+  0% { left: 0; opacity: 1; }
+  31% { left: calc(100% - 10px); opacity: 1; }
+  33%, 100% { left: calc(100% - 10px); opacity: 0; }
+}
+
+/* same, first quarter of the loop */
+@keyframes go-quarter {
+  0% { left: 0; opacity: 1; }
+  24% { left: calc(100% - 10px); opacity: 1; }
+  25%, 100% { left: calc(100% - 10px); opacity: 0; }
+}
+
+/* right to left, first quarter of the loop (responses) */
+@keyframes back-quarter {
+  0% { left: calc(100% - 10px); opacity: 1; }
+  24% { left: 0; opacity: 1; }
+  25%, 100% { left: 0; opacity: 0; }
+}
+
+/* quick flash on a box */
+@keyframes hit {
+  0%, 8% {
+    border-color: var(--bright);
+    box-shadow: 0 0 14px rgba(255, 255, 255, 0.5);
+  }
+  14%, 100% {
+    border-color: #555;
+    box-shadow: none;
+  }
+}
+
+
+/* ---------- one waiter vs many waiters ---------- */
+
+.tables {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.table {
+  padding: 8px 0;
+  border: 1px solid var(--line);
+  color: #666;
+  font-size: 12px;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.table small {
+  display: block;
+  font-size: 10px;
+}
+
+/* old way: every table stuck waiting */
+.tables-old .table {
+  border-style: dashed;
+}
+
+.tables-old small {
+  color: var(--warn);
+  opacity: 0.6;
+}
+
+/* nginx: one table lights up at a time, left to right */
+.tables-nginx .table {
+  animation: serve 3s infinite;
+}
+
+.tables-nginx .table:nth-child(2) { animation-delay: 0.5s; }
+.tables-nginx .table:nth-child(3) { animation-delay: 1s; }
+.tables-nginx .table:nth-child(4) { animation-delay: 1.5s; }
+.tables-nginx .table:nth-child(5) { animation-delay: 2s; }
+.tables-nginx .table:nth-child(6) { animation-delay: 2.5s; }
+
+@keyframes serve {
+  0%, 15% {
+    border-color: var(--bright);
+    color: var(--bright);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.25);
+  }
+  17%, 100% {
+    border-color: var(--line);
+    color: #666;
+    box-shadow: none;
+  }
+}
+
+
+/* ---------- phones ---------- */
+
+@media (max-width: 500px) {
+  .node {
+    padding: 6px;
+    font-size: 11px;
+  }
+
+  .tables {
+    gap: 4px;
+  }
+
+  .table small {
+    font-size: 8px;
+    letter-spacing: -0.5px;
+  }
+
+  .wire-label,
+  .packet[data-label]::after {
+    font-size: 8px;
+  }
+
+  .errors td:first-child {
+    white-space: normal;
+    overflow-wrap: normal;
+  }
+}
+
+
+/* ---------- people who turned off animations ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .packet,
+  .node,
+  .tables-nginx .table {
+    animation: none;
+  }
+}

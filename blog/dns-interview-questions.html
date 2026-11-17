@@ -14,6 +14,7 @@
     />
     <link rel="stylesheet" href="../style.css" />
     <link rel="stylesheet" href="blog.css" />
+    <link rel="stylesheet" href="dns.css" />
   </head>
   <body>
     <article class="container post">
@@ -28,6 +29,22 @@
         Clear answers, easy words. Hope it helps.
       </p>
 
+      <div class="board" aria-label="Domain names turning into IP addresses">
+        <div class="board-head"><span>Name</span><span>Address</span></div>
+        <div class="flap"><div class="flap-card">
+          <div class="flap-face">google.com <span>looking up…</span></div>
+          <div class="flap-face ip">142.250.x.x <span>A record</span></div>
+        </div></div>
+        <div class="flap"><div class="flap-card">
+          <div class="flap-face">github.com <span>looking up…</span></div>
+          <div class="flap-face ip">140.82.x.x <span>A record</span></div>
+        </div></div>
+        <div class="flap"><div class="flap-card">
+          <div class="flap-face">example.com <span>looking up…</span></div>
+          <div class="flap-face ip">93.184.x.x <span>A record</span></div>
+        </div></div>
+      </div>
+
       <h2>Basics</h2>
 
       <h3>1. What is DNS?</h3>
@@ -37,6 +54,15 @@
         using IPs, not names.
       </p>
 
+
+      <div class="dq">
+        <div class="dq-lane">
+          <div class="dq-node">you<small>browser</small></div>
+          <div class="dq-track"><span class="dq-mover " style="--d: 0s">google.com ?</span><span class="dq-mover back" style="--d: 2s">← 142.250.x.x</span></div>
+          <div class="dq-node">DNS<small>phone book</small></div>
+        </div>
+        <p class="dq-cap">You ask with a name, you get back a number.</p>
+      </div>
       <h3>2. What happens when you type google.com in a browser?</h3>
       <p>
         First the browser checks its own cache. Then the OS checks the hosts
@@ -46,6 +72,19 @@
         IP.
       </p>
 
+      <p>Here's the same trip as a group chat. Watch who asks who:</p>
+      <div class="chat">
+        <div class="msg ask"><b>You → Resolver</b>Where is google.com?</div>
+        <div class="msg ask"><b>Resolver → Root</b>Where is google.com?</div>
+        <div class="msg reply"><b>Root</b>Not me. Ask the .com servers.</div>
+        <div class="msg ask"><b>Resolver → .com</b>Where is google.com?</div>
+        <div class="msg reply"><b>.com</b>Ask Google's own server: ns1.google.com</div>
+        <div class="msg ask"><b>Resolver → ns1.google.com</b>Where is google.com?</div>
+        <div class="msg reply"><b>ns1.google.com</b>It's 142.250.x.x</div>
+        <div class="msg reply final"><b>Resolver → You</b>142.250.x.x. I'll remember it for a while.</div>
+        <p class="chat-note">Next time, the resolver answers from memory and skips everyone else.</p>
+      </div>
+
       <h3>3. What is a recursive DNS server?</h3>
       <p>
         It's the DNS server your computer asks for answers. It does all the
@@ -53,6 +92,12 @@
         are 8.8.8.8 or your company's DNS server.
       </p>
 
+
+      <div class="dq">
+        <div class="dq-msg ask" style="--i: 0"><b>You → Resolver</b>Find google.com for me, please.</div>
+        <div class="dq-msg reply" style="--i: 1"><b>Resolver</b>On it. I ask the root, .com and Google for you.</div>
+        <div class="dq-msg reply" style="--i: 2"><b>Resolver</b>Done: 142.250.x.x (saved in my cache)</div>
+      </div>
       <h3>4. What is an authoritative DNS server?</h3>
       <p>
         It's the server that holds the real DNS records for a domain. When it
@@ -60,6 +105,11 @@
         can be the authoritative server for your domain.
       </p>
 
+
+      <div class="dq">
+        <div class="dq-msg ask" style="--i: 0"><b>Resolver → ns1.google.com</b>Is google.com really 142.250.x.x?</div>
+        <div class="dq-msg reply" style="--i: 1"><b>ns1.google.com</b>Yes. I hold the official records. Final answer.</div>
+      </div>
       <h3>5. What is the difference between a recursive and an iterative query?</h3>
       <p>
         In a recursive query, the client asks for the final answer and the
@@ -67,12 +117,33 @@
         answer it has, or tells you which server to ask next.
       </p>
 
+
+      <div class="dq">
+        <div class="dq-swap" style="--h: 44px">
+          <div style="--i: 0"><p class="am">Recursive</p><p>"Give me the <b>final</b> answer." → 142.250.x.x</p></div>
+          <div style="--i: 1"><p class="bl">Iterative</p><p>"Tell me what you know." → "Ask the .com servers."</p></div>
+        </div>
+      </div>
       <h3>6. Which port does DNS use?</h3>
       <p>
         DNS uses port 53. It uses UDP for normal queries because it's fast,
         and TCP for zone transfers and answers that are too big for UDP.
       </p>
 
+
+      <div class="dq">
+        <div class="dq-lane">
+          <div class="dq-node">client</div>
+          <div class="dq-track"><span class="dq-mover " style="--d: 0s">UDP 53 · small query</span></div>
+          <div class="dq-node">DNS</div>
+        </div>
+        <div class="dq-lane">
+          <div class="dq-node">client</div>
+          <div class="dq-track"><span class="dq-mover back slow" style="--d: 0s">TCP 53 · big answer</span></div>
+          <div class="dq-node">DNS</div>
+        </div>
+        <p class="dq-cap">UDP is quick and light. TCP is for big answers and zone transfers.</p>
+      </div>
       <h3>7. What is the hosts file?</h3>
       <p>
         The hosts file is a local file that maps names to IP addresses. The
@@ -82,6 +153,15 @@
       <pre><code>Windows: C:\Windows\System32\drivers\etc\hosts
 Linux:   /etc/hosts</code></pre>
 
+
+      <div class="dq">
+        <ul class="dq-ticks">
+          <li style="--i: 0"><i class="y"></i>hosts file → <span class="ok">found 192.168.1.50</span></li>
+          <li style="--i: 1"><i class="s"></i>DNS cache → skipped</li>
+          <li style="--i: 2"><i class="s"></i>DNS server → skipped</li>
+        </ul>
+        <p class="dq-cap">The hosts file is checked first. If it has the name, DNS is never asked.</p>
+      </div>
       <h3>8. What is the difference between DNS and DHCP?</h3>
       <p>
         DHCP gives a computer its IP address, gateway and DNS server. DNS
@@ -89,11 +169,27 @@ Linux:   /etc/hosts</code></pre>
         and DNS uses port 53.
       </p>
 
+
+      <div class="dq">
+        <div class="dq-msg ask" style="--i: 0"><b>New PC → DHCP</b>Hi, I just joined the network!</div>
+        <div class="dq-msg reply" style="--i: 1"><b>DHCP</b>Your IP is 192.168.1.20. Your DNS server is 192.168.1.1.</div>
+        <div class="dq-msg ask" style="--i: 2"><b>PC → DNS</b>Where is google.com?</div>
+        <div class="dq-msg reply" style="--i: 3"><b>DNS</b>142.250.x.x</div>
+      </div>
       <h3>9. What is TTL?</h3>
       <p>
         TTL means Time To Live. It tells DNS servers how long they can cache a
         record, in seconds. For example, a TTL of 3600 means one hour.
       </p>
+
+      <div class="ttl">
+        <div class="ttl-row">
+          <span>google.com → 142.250.x.x</span>
+          <span class="ttl-state"><span class="fresh">in cache</span><span class="stale">expired, ask again</span></span>
+        </div>
+        <div class="ttl-bar"><i></i></div>
+        <div class="ttl-row"><small>TTL 300s</small><small>0s</small></div>
+      </div>
 
       <h3>10. What is DNS propagation?</h3>
       <p>
@@ -102,6 +198,24 @@ Linux:   /etc/hosts</code></pre>
         until its TTL expires.
       </p>
 
+
+      <div class="dq">
+        <div class="dq-prop">
+          <span class="dq-dot" style="--i: 0">NYC</span>
+          <span class="dq-dot" style="--i: 1">London</span>
+          <span class="dq-dot" style="--i: 2">Dhaka</span>
+          <span class="dq-dot" style="--i: 3">Tokyo</span>
+          <span class="dq-dot" style="--i: 4">Paris</span>
+          <span class="dq-dot" style="--i: 5">Delhi</span>
+          <span class="dq-dot" style="--i: 6">Sydney</span>
+          <span class="dq-dot" style="--i: 7">Dubai</span>
+          <span class="dq-dot" style="--i: 8">Lagos</span>
+          <span class="dq-dot" style="--i: 9">Berlin</span>
+          <span class="dq-dot" style="--i: 10">Seoul</span>
+          <span class="dq-dot" style="--i: 11">Lima</span>
+        </div>
+        <p class="dq-cap"><span class="bad">red = old IP</span> · <span class="ok">green = new IP</span>. Each resolver updates when its cached copy expires.</p>
+      </div>
       <h2>Records</h2>
 
       <h3>11. What is an A record?</h3>
@@ -111,6 +225,13 @@ Linux:   /etc/hosts</code></pre>
 Host: @
 Value: 192.0.2.10</code></pre>
 
+
+      <div class="dq dq-rec">
+        <div class="flap"><div class="flap-card">
+          <div class="flap-face">example.com  A  <span>looking up…</span></div>
+          <div class="flap-face ip">192.0.2.10 <span>IPv4</span></div>
+        </div></div>
+      </div>
       <h3>12. What is an AAAA record?</h3>
       <p>An AAAA record maps a domain name to an IPv6 address.</p>
       <p>Example:</p>
@@ -118,6 +239,13 @@ Value: 192.0.2.10</code></pre>
 Host: @
 Value: 2001:db8::10</code></pre>
 
+
+      <div class="dq dq-rec">
+        <div class="flap"><div class="flap-card">
+          <div class="flap-face">example.com  AAAA  <span>looking up…</span></div>
+          <div class="flap-face ip">2001:db8::10 <span>IPv6</span></div>
+        </div></div>
+      </div>
       <h3>13. What is a CNAME record?</h3>
       <p>
         A CNAME record makes one domain name an alias of another name. When
@@ -128,6 +256,17 @@ Value: 2001:db8::10</code></pre>
 Host: www
 Value: example.com</code></pre>
 
+
+      <div class="dq">
+        <div class="dq-lane">
+          <div class="dq-node">www.example.com</div>
+          <div class="dq-track"><span class="dq-mover " style="--d: 0s">CNAME →</span></div>
+          <div class="dq-node">example.com</div>
+          <div class="dq-track"><span class="dq-mover " style="--d: 1.6s">A →</span></div>
+          <div class="dq-node">192.0.2.10</div>
+        </div>
+        <p class="dq-cap">DNS follows the alias first, then finds the real IP.</p>
+      </div>
       <h3>14. Why can't you use a CNAME on the root domain?</h3>
       <p>
         A name with a CNAME can't have any other records. The root domain
@@ -135,6 +274,13 @@ Value: example.com</code></pre>
         Some providers offer "CNAME flattening" to work around it.
       </p>
 
+
+      <div class="dq">
+        <div class="dq-swap" style="--h: 44px">
+          <div style="--i: 0"><p class="bad">✗ example.com  CNAME  other.com</p><p class="mu">clashes with the NS and SOA records</p></div>
+          <div style="--i: 1"><p class="ok">✓ CNAME flattening</p><p class="mu">looks like a CNAME, answers with an A record</p></div>
+        </div>
+      </div>
       <h3>15. What does @ mean in DNS?</h3>
       <p>
         The @ symbol means the root domain itself. For example, if your
@@ -147,6 +293,13 @@ Value: 192.0.2.10
 
 This means example.com → 192.0.2.10</code></pre>
 
+
+      <div class="dq dq-rec">
+        <div class="flap"><div class="flap-card">
+          <div class="flap-face">@  <span>host</span></div>
+          <div class="flap-face ip">example.com <span>the root domain</span></div>
+        </div></div>
+      </div>
       <h3>16. What is an MX record?</h3>
       <p>
         An MX record tells other servers where to deliver email for a domain.
@@ -158,6 +311,12 @@ Host: @
 Priority: 10
 Value: mail.example.com</code></pre>
 
+
+      <div class="dq">
+        <div class="dq-msg ask" style="--i: 0"><b>Mail server → DNS</b>Where do I deliver mail for example.com?</div>
+        <div class="dq-msg reply" style="--i: 1"><b>DNS</b>MX 10 mail1.example.com: try this first</div>
+        <div class="dq-msg reply" style="--i: 2"><b>DNS</b>MX 20 mail2.example.com: backup</div>
+      </div>
       <h3>17. What is a TXT record used for?</h3>
       <p>
         A TXT record stores text in DNS. It's mostly used for email security
@@ -169,6 +328,15 @@ Value: mail.example.com</code></pre>
 Host: @
 Value: v=spf1 include:_spf.google.com ~all</code></pre>
 
+
+      <div class="dq">
+        <ul class="dq-ticks">
+          <li style="--i: 0"><i class="y"></i>SPF: who may send mail as you</li>
+          <li style="--i: 1"><i class="y"></i>DKIM: signature key for emails</li>
+          <li style="--i: 2"><i class="y"></i>DMARC: what to do if checks fail</li>
+          <li style="--i: 3"><i class="y"></i>verification: proves you own the domain</li>
+        </ul>
+      </div>
       <h3>18. What is an NS record?</h3>
       <p>An NS record shows which name servers are authoritative for a domain.</p>
       <p>Example:</p>
@@ -176,6 +344,11 @@ Value: v=spf1 include:_spf.google.com ~all</code></pre>
 Host: @
 Value: ns1.example.com</code></pre>
 
+
+      <div class="dq">
+        <div class="dq-msg ask" style="--i: 0"><b>Resolver → .com</b>Who is in charge of example.com?</div>
+        <div class="dq-msg reply" style="--i: 1"><b>.com</b>ns1.example.com and ns2.example.com</div>
+      </div>
       <h3>19. What is a PTR record?</h3>
       <p>
         A PTR record is used for reverse DNS. It maps an IP address back to a
@@ -189,6 +362,13 @@ Value: mail.example.com
 
 This means 192.0.2.10 → mail.example.com</code></pre>
 
+
+      <div class="dq dq-rec">
+        <div class="flap"><div class="flap-card">
+          <div class="flap-face">192.0.2.10  <span>reverse lookup</span></div>
+          <div class="flap-face ip">mail.example.com <span>PTR</span></div>
+        </div></div>
+      </div>
       <h3>20. What is an SOA record?</h3>
       <p>
         SOA means Start of Authority. It holds the main settings of a zone,
@@ -196,6 +376,16 @@ This means 192.0.2.10 → mail.example.com</code></pre>
         refresh timers. The serial number must increase after every change.
       </p>
 
+
+      <div class="dq">
+        <ul class="dq-ticks">
+          <li style="--i: 0"><i class="y"></i>serial 2026110101</li>
+          <li style="--i: 1"><i class="w"></i>you edit a record…</li>
+          <li style="--i: 2"><i class="y"></i>serial 2026110102 (went up)</li>
+          <li style="--i: 3"><i class="y"></i>secondary servers copy the change</li>
+        </ul>
+        <p class="dq-cap">If the serial doesn't go up, secondary servers ignore the change.</p>
+      </div>
       <h3>21. What is an SRV record?</h3>
       <p>
         An SRV record points to the server and port for a specific service.
@@ -210,6 +400,11 @@ Weight: 100
 Port: 389
 Value: dc1.example.com</code></pre>
 
+
+      <div class="dq">
+        <div class="dq-msg ask" style="--i: 0"><b>PC → DNS</b>Where is a domain controller?</div>
+        <div class="dq-msg reply" style="--i: 1"><b>DNS</b>_ldap._tcp → dc1.example.com on port 389</div>
+      </div>
       <h3>22. What is a wildcard record?</h3>
       <p>
         A wildcard record like <code>*.example.com</code> matches any
@@ -221,6 +416,17 @@ Value: dc1.example.com</code></pre>
 Host: *
 Value: 192.0.2.10</code></pre>
 
+
+      <div class="dq dq-rec">
+        <div class="flap"><div class="flap-card">
+          <div class="flap-face">anything.example.com</div>
+          <div class="flap-face ip">192.0.2.10 <span>from *</span></div>
+        </div></div>
+        <div class="flap"><div class="flap-card">
+          <div class="flap-face">shop.example.com</div>
+          <div class="flap-face ip">192.0.2.20 <span>own record wins</span></div>
+        </div></div>
+      </div>
       <h2>Commands</h2>
 
       <h3>23. How do you check DNS resolution on Windows?</h3>
@@ -228,46 +434,87 @@ Value: 192.0.2.10</code></pre>
       <p>Command:</p>
       <pre><code>nslookup google.com</code></pre>
 
+
+      <div class="dq dq-term">
+        <p><span class="pr">C:\&gt;</span> <span class="dq-cmd" style="--n: 19">nslookup google.com</span></p>
+        <p class="dq-out">Server:  192.168.1.1</p>
+        <p class="dq-out">Address: 142.250.x.x</p>
+      </div>
       <h3>24. How do you see your DNS server on Windows?</h3>
       <p>Run ipconfig /all. It shows your DNS servers, IP address, gateway and DHCP details.</p>
       <p>Command:</p>
       <pre><code>ipconfig /all</code></pre>
 
+
+      <div class="dq dq-term">
+        <p><span class="pr">C:\&gt;</span> <span class="dq-cmd" style="--n: 13">ipconfig /all</span></p>
+        <p class="dq-out">DNS Servers . . . . : <span class="am">192.168.1.1</span></p>
+      </div>
       <h3>25. How do you clear the DNS cache on Windows?</h3>
       <p>Run this command. It removes all cached DNS answers from your computer.</p>
       <p>Command:</p>
       <pre><code>ipconfig /flushdns</code></pre>
 
+
+      <div class="dq dq-term">
+        <p><span class="pr">C:\&gt;</span> <span class="dq-cmd" style="--n: 18">ipconfig /flushdns</span></p>
+        <p class="dq-out"><span class="ok">Successfully flushed the DNS Resolver Cache.</span></p>
+      </div>
       <h3>26. How do you check DNS in PowerShell?</h3>
       <p>Use Resolve-DnsName. You can also add -Server to ask a specific DNS server.</p>
       <p>Command:</p>
       <pre><code>Resolve-DnsName google.com
 Resolve-DnsName google.com -Server 8.8.8.8</code></pre>
 
+
+      <div class="dq dq-term">
+        <p><span class="pr">PS&gt;</span> <span class="dq-cmd" style="--n: 26">Resolve-DnsName google.com</span></p>
+        <p class="dq-out">google.com   A   300   142.250.x.x</p>
+      </div>
       <h3>27. How do you check DNS on Linux?</h3>
       <p>Use dig. Add +short if you only want the IP address.</p>
       <p>Command:</p>
       <pre><code>dig google.com
 dig +short google.com</code></pre>
 
+
+      <div class="dq dq-term">
+        <p><span class="pr">$</span> <span class="dq-cmd" style="--n: 21">dig +short google.com</span></p>
+        <p class="dq-out">142.250.x.x</p>
+      </div>
       <h3>28. How do you check a specific record type, like MX?</h3>
       <p>Add the record type to the command.</p>
       <p>Command:</p>
       <pre><code>dig example.com MX
 nslookup -type=MX example.com</code></pre>
 
+
+      <div class="dq dq-term">
+        <p><span class="pr">$</span> <span class="dq-cmd" style="--n: 18">dig example.com MX</span></p>
+        <p class="dq-out">example.com.  300  MX  10 mail.example.com.</p>
+      </div>
       <h3>29. How do you ask a specific DNS server?</h3>
       <p>This is useful to compare answers from different servers.</p>
       <p>Command:</p>
       <pre><code>dig @8.8.8.8 example.com
 nslookup example.com 8.8.8.8</code></pre>
 
+
+      <div class="dq dq-term">
+        <p><span class="pr">$</span> <span class="dq-cmd" style="--n: 24">dig @8.8.8.8 example.com</span></p>
+        <p class="dq-out">;; SERVER: <span class="am">8.8.8.8#53</span></p>
+      </div>
       <h3>30. How do you do a reverse DNS lookup?</h3>
       <p>Look up the IP address instead of the name.</p>
       <p>Command:</p>
       <pre><code>dig -x 8.8.8.8
 nslookup 8.8.8.8</code></pre>
 
+
+      <div class="dq dq-term">
+        <p><span class="pr">$</span> <span class="dq-cmd" style="--n: 14">dig -x 8.8.8.8</span></p>
+        <p class="dq-out">8.8.8.8.in-addr.arpa.  PTR  <span class="am">dns.google.</span></p>
+      </div>
       <h3>31. What is the difference between NXDOMAIN and SERVFAIL?</h3>
       <p>
         NXDOMAIN means the domain name doesn't exist. SERVFAIL means the DNS
@@ -275,6 +522,13 @@ nslookup 8.8.8.8</code></pre>
         the server side.
       </p>
 
+
+      <div class="dq">
+        <div class="dq-swap" style="--h: 44px">
+          <div style="--i: 0"><p class="am">NXDOMAIN</p><p>"That name doesn't exist." Check for typos.</p></div>
+          <div style="--i: 1"><p class="bad">SERVFAIL</p><p>"I tried, but something broke." Server-side problem.</p></div>
+        </div>
+      </div>
       <h3>32. Why can nslookup and ping show different IPs?</h3>
       <p>
         nslookup asks the DNS server directly. ping uses the OS, which checks
@@ -282,6 +536,20 @@ nslookup 8.8.8.8</code></pre>
         the hosts file and flush the cache.
       </p>
 
+
+      <div class="dq">
+        <div class="dq-lane">
+          <div class="dq-node">nslookup</div>
+          <div class="dq-track"><span class="dq-mover " style="--d: 0s">asks DNS directly</span></div>
+          <div class="dq-node">192.0.2.10<small>new (DNS)</small></div>
+        </div>
+        <div class="dq-lane">
+          <div class="dq-node">ping</div>
+          <div class="dq-track"><span class="dq-mover bad" style="--d: 0s">checks hosts file first</span></div>
+          <div class="dq-node">10.0.0.5<small>old entry</small></div>
+        </div>
+        <p class="dq-cap">Different IPs? Look for an old hosts file entry or a stale cache.</p>
+      </div>
       <h2>Troubleshooting</h2>
 
       <h3>33. A user can open a site by IP but not by name. What do you check?</h3>
@@ -291,6 +559,15 @@ nslookup 8.8.8.8</code></pre>
         another server like 8.8.8.8, and flush the DNS cache.
       </p>
 
+
+      <div class="dq">
+        <ul class="dq-ticks">
+          <li style="--i: 0"><i class="y"></i>ipconfig /all: DNS server set?</li>
+          <li style="--i: 1"><i class="n"></i>nslookup google.com: no answer</li>
+          <li style="--i: 2"><i class="y"></i>nslookup google.com 8.8.8.8: works</li>
+          <li style="--i: 3"><i class="y"></i>fix DNS setting, ipconfig /flushdns</li>
+        </ul>
+      </div>
       <h3>34. example.com works, but www.example.com doesn't. Why?</h3>
       <p>
         The DNS record for www is probably missing. Add an A record or a CNAME
@@ -301,6 +578,14 @@ nslookup 8.8.8.8</code></pre>
 Host: www
 Value: example.com</code></pre>
 
+
+      <div class="dq">
+        <ul class="dq-ticks">
+          <li style="--i: 0"><i class="y"></i>example.com: A record found</li>
+          <li style="--i: 1"><i class="n"></i>www.example.com: no record</li>
+          <li style="--i: 2"><i class="y"></i>add CNAME www → example.com</li>
+        </ul>
+      </div>
       <h3>35. You changed a DNS record, but you still see the old IP. Why?</h3>
       <p>
         The old record is still cached. Flush your local cache and wait for
@@ -308,6 +593,15 @@ Value: example.com</code></pre>
         to make sure the change was saved.
       </p>
 
+
+      <div class="dq">
+        <ul class="dq-ticks">
+          <li style="--i: 0"><i class="y"></i>authoritative server: new IP saved</li>
+          <li style="--i: 1"><i class="n"></i>your PC: still caching old IP</li>
+          <li style="--i: 2"><i class="y"></i>ipconfig /flushdns</li>
+          <li style="--i: 3"><i class="w"></i>wait for the TTL to run out</li>
+        </ul>
+      </div>
       <h3>36. How do you handle DNS when moving a website to a new server?</h3>
       <p>
         Lower the TTL a day before the move. Then update the A record to the
@@ -315,6 +609,15 @@ Value: example.com</code></pre>
         works, set the TTL back to normal.
       </p>
 
+
+      <div class="dq">
+        <ul class="dq-ticks">
+          <li style="--i: 0"><i class="y"></i>day before: lower TTL to 300</li>
+          <li style="--i: 1"><i class="y"></i>move day: update the A record</li>
+          <li style="--i: 2"><i class="y"></i>keep the old server running</li>
+          <li style="--i: 3"><i class="y"></i>all good: raise the TTL again</li>
+        </ul>
+      </div>
       <h3>37. Internal company sites don't open by name, but the IP works. Why?</h3>
       <p>
         The computer is probably using a public DNS server instead of the
@@ -322,6 +625,13 @@ Value: example.com</code></pre>
         computer.
       </p>
 
+
+      <div class="dq">
+        <div class="dq-swap" style="--h: 44px">
+          <div style="--i: 0"><p>PC uses <span class="am">8.8.8.8</span></p><p class="bad">✗ intranet.company.local not found</p></div>
+          <div style="--i: 1"><p>PC uses <span class="bl">company DNS</span></p><p class="ok">✓ intranet.company.local → 10.0.0.20</p></div>
+        </div>
+      </div>
       <h3>38. The company DNS server isn't responding. What do you do?</h3>
       <p>
         First ping the server to check it's reachable. Then check the DNS
@@ -329,6 +639,15 @@ Value: example.com</code></pre>
         server logs.
       </p>
 
+
+      <div class="dq">
+        <ul class="dq-ticks">
+          <li style="--i: 0"><i class="y"></i>ping the DNS server: reachable</li>
+          <li style="--i: 1"><i class="n"></i>DNS service: stopped!</li>
+          <li style="--i: 2"><i class="y"></i>start the service</li>
+          <li style="--i: 3"><i class="y"></i>check port 53 and the logs</li>
+        </ul>
+      </div>
       <h3>39. DNS works with 8.8.8.8 but not with the company DNS server. What does it mean?</h3>
       <p>
         The client and network are fine, so the problem is the company DNS
@@ -336,6 +655,13 @@ Value: example.com</code></pre>
         working.
       </p>
 
+
+      <div class="dq">
+        <div class="dq-swap" style="--h: 44px">
+          <div style="--i: 0"><p>nslookup example.com <span class="am">8.8.8.8</span></p><p class="ok">✓ answer</p></div>
+          <div style="--i: 1"><p>nslookup example.com <span class="bl">company DNS</span></p><p class="bad">✗ timeout → check its forwarders</p></div>
+        </div>
+      </div>
       <h3>40. The internet works, but Active Directory login fails. Could it be DNS?</h3>
       <p>
         Yes, this is very often DNS. Computers find domain controllers using
@@ -345,12 +671,29 @@ Value: example.com</code></pre>
       <p>Command:</p>
       <pre><code>dcdiag /test:dns</code></pre>
 
+
+      <div class="dq">
+        <div class="dq-swap" style="--h: 44px">
+          <div style="--i: 0"><p>PC DNS = <span class="am">8.8.8.8</span></p><p class="bad">✗ can't find a domain controller, login fails</p></div>
+          <div style="--i: 1"><p>PC DNS = <span class="bl">10.0.0.2 (the DC)</span></p><p class="ok">✓ DC found through SRV records, login works</p></div>
+        </div>
+      </div>
       <h3>41. Company emails are going to spam. Which DNS records do you check?</h3>
       <p>
         Check the SPF, DKIM and DMARC records, and the PTR record of the mail
         server. If any of them is missing or wrong, emails can land in spam.
       </p>
 
+
+      <div class="dq">
+        <ul class="dq-ticks">
+          <li style="--i: 0"><i class="y"></i>SPF record</li>
+          <li style="--i: 1"><i class="y"></i>DKIM record</li>
+          <li style="--i: 2"><i class="n"></i>DMARC: missing</li>
+          <li style="--i: 3"><i class="y"></i>PTR of the mail server</li>
+        </ul>
+        <p class="dq-cap">One missing record is often enough to land in spam.</p>
+      </div>
       <h3>42. DNS is down for the whole company. What do you do?</h3>
       <p>
         First find out who is affected. Check the DNS servers and the DNS
@@ -358,6 +701,15 @@ Value: example.com</code></pre>
         work, then find the root cause.
       </p>
 
+
+      <div class="dq">
+        <ul class="dq-ticks">
+          <li style="--i: 0"><i class="y"></i>who is affected?</li>
+          <li style="--i: 1"><i class="n"></i>DNS servers: down</li>
+          <li style="--i: 2"><i class="y"></i>switch to the backup DNS server</li>
+          <li style="--i: 3"><i class="w"></i>find the root cause</li>
+        </ul>
+      </div>
       <h2>Advanced</h2>
 
       <h3>43. What is a DNS forwarder?</h3>
@@ -366,6 +718,16 @@ Value: example.com</code></pre>
         doesn't know the answer itself, for example 8.8.8.8 or your ISP's DNS.
       </p>
 
+
+      <div class="dq">
+        <div class="dq-lane">
+          <div class="dq-node">company DNS</div>
+          <div class="dq-track"><span class="dq-mover " style="--d: 0s">don't know →</span></div>
+          <div class="dq-node">8.8.8.8<small>forwarder</small></div>
+          <div class="dq-track"><span class="dq-mover " style="--d: 1.6s">→</span></div>
+          <div class="dq-node">internet</div>
+        </div>
+      </div>
       <h3>44. What is a conditional forwarder?</h3>
       <p>
         A conditional forwarder sends questions for one specific domain to one
@@ -373,6 +735,13 @@ Value: example.com</code></pre>
         resolve each other's internal names.
       </p>
 
+
+      <div class="dq">
+        <div class="dq-swap" style="--h: 44px">
+          <div style="--i: 0"><p>*.partner.local →</p><p class="bl">ask 10.20.0.5 (partner's DNS)</p></div>
+          <div style="--i: 1"><p>everything else →</p><p class="am">ask 8.8.8.8</p></div>
+        </div>
+      </div>
       <h3>45. What is a zone transfer?</h3>
       <p>
         A zone transfer copies DNS records from the primary server to a
@@ -380,12 +749,29 @@ Value: example.com</code></pre>
         changes. It should only be allowed to your own servers.
       </p>
 
+
+      <div class="dq">
+        <div class="dq-lane">
+          <div class="dq-node">primary</div>
+          <div class="dq-track"><span class="dq-mover " style="--d: 0s">AXFR · all records</span><span class="dq-mover ok" style="--d: 2s">IXFR · changes</span></div>
+          <div class="dq-node">secondary</div>
+        </div>
+        <p class="dq-cap">Only allow transfers to your own servers.</p>
+      </div>
       <h3>46. What is the difference between a primary and a secondary zone?</h3>
       <p>
         A primary zone is the main copy where you can add and edit records. A
         secondary zone is a read-only copy that gets updates from the primary.
       </p>
 
+
+      <div class="dq">
+        <div class="dq-lane">
+          <div class="dq-node">primary ✎<small>editable</small></div>
+          <div class="dq-track"><span class="dq-mover " style="--d: 0s">copy →</span></div>
+          <div class="dq-node">secondary 🔒<small>read-only</small></div>
+        </div>
+      </div>
       <h3>47. What is split-brain DNS?</h3>
       <p>
         Split-brain DNS gives different answers for the same name depending on
@@ -393,6 +779,14 @@ Value: example.com</code></pre>
         a private IP, and from the internet it points to a public IP.
       </p>
 
+
+      <div class="dq">
+        <div class="dq-swap" style="--h: 44px">
+          <div style="--i: 0"><p>inside the office</p><p>app.example.com → <span class="bl">192.168.1.20</span></p></div>
+          <div style="--i: 1"><p>from the internet</p><p>app.example.com → <span class="am">203.0.113.20</span></p></div>
+        </div>
+        <p class="dq-cap">Same name, different answer depending on where you ask from.</p>
+      </div>
       <h3>48. What is DNSSEC?</h3>
       <p>
         DNSSEC adds digital signatures to DNS records. It proves the answer
@@ -400,6 +794,16 @@ Value: example.com</code></pre>
         encrypt the data.
       </p>
 
+
+      <div class="dq">
+        <ul class="dq-ticks">
+          <li style="--i: 0"><i class="y"></i>root zone: signed</li>
+          <li style="--i: 1"><i class="y"></i>.com: signed</li>
+          <li style="--i: 2"><i class="y"></i>example.com: signature valid</li>
+          <li style="--i: 3"><i class="y"></i>answer is genuine</li>
+        </ul>
+        <p class="dq-cap">A chain of signatures from the root down. It proves, it doesn't encrypt.</p>
+      </div>
       <h3>49. What is DNS cache poisoning?</h3>
       <p>
         It's an attack where someone puts a fake record into a DNS server's
@@ -407,6 +811,14 @@ Value: example.com</code></pre>
         malicious, website.
       </p>
 
+
+      <div class="dq">
+        <div class="dq-swap" style="--h: 44px">
+          <div style="--i: 0"><p>cache</p><p>bank.com → <span class="ok">198.51.100.10 ✓ real</span></p></div>
+          <div style="--i: 1"><p>cache (poisoned)</p><p>bank.com → <span class="bad">203.0.113.66 ✗ fake</span></p></div>
+        </div>
+        <p class="dq-cap">Everyone using this resolver gets sent to the fake site.</p>
+      </div>
       <h3>50. What are DoH and DoT?</h3>
       <p>
         They are ways to encrypt DNS so others can't see or change your
@@ -414,6 +826,20 @@ Value: example.com</code></pre>
         uses port 853.
       </p>
 
+
+      <div class="dq">
+        <div class="dq-lane">
+          <div class="dq-node">you</div>
+          <div class="dq-track"><span class="dq-mover bad" style="--d: 0s">google.com? (readable)</span></div>
+          <div class="dq-node">DNS<small>port 53</small></div>
+        </div>
+        <div class="dq-lane">
+          <div class="dq-node">you</div>
+          <div class="dq-track"><span class="dq-mover ok" style="--d: 0s">🔒 ••••••••</span></div>
+          <div class="dq-node">DNS<small>443 / 853</small></div>
+        </div>
+        <p class="dq-cap">Top: plain DNS anyone on the network can read. Bottom: DoH / DoT.</p>
+      </div>
       <p><a href="index.html">← all posts</a></p>
     </article>
   </body>

@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NGINX Explained Like a Restaurant · Rezwan Hossain</title>
+    <meta
+      name="description"
+      content="What NGINX does, explained with a simple restaurant analogy, animated diagrams and real config examples."
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="blog.css" />
+    <link rel="stylesheet" href="nginx.css" />
+  </head>
+  <body>
+    <article class="container post">
+      <header>
+        <a class="back" href="index.html">← all posts</a>
+        <h1>NGINX Explained Like a Restaurant</h1>
+        <p class="date">Nov 17, 2026</p>
+      </header>
+
+      <p>
+        NGINX is on almost every server I touch. But the config files looked
+        like magic to me for a long time. What finally made it click was
+        thinking of NGINX as the front desk of a restaurant.
+      </p>
+      <p>
+        So that's how this post works. Every NGINX job gets a restaurant
+        picture first, then a small animation, then the real config.
+      </p>
+
+      <h2>The Restaurant</h2>
+      <p>Keep this picture in your head for the rest of the post:</p>
+      <table class="analogy">
+        <tr><th>Restaurant</th><th>Web server</th></tr>
+        <tr><td>Customer</td><td>Browser (the user)</td></tr>
+        <tr><td>Host at the front desk</td><td><strong>NGINX</strong></td></tr>
+        <tr><td>Kitchen</td><td>Your app (Node.js, PHP, Python...)</td></tr>
+        <tr><td>Water and bread at the counter</td><td>Static files (HTML, CSS, images)</td></tr>
+        <tr><td>Several chefs</td><td>Several app servers (load balancing)</td></tr>
+        <tr><td>Checking the reservation at the door</td><td>HTTPS and security</td></tr>
+        <tr><td>Soup kept warm at the counter</td><td>Caching</td></tr>
+      </table>
+      <p>
+        Customers never walk into the kitchen. They talk to the host, and the
+        host decides what happens next. That's NGINX in one sentence.
+      </p>
+
+      <h2>Why NGINX Is So Fast</h2>
+      <p>
+        Picture two restaurants. In the first one, every table gets its own
+        waiter. The waiter takes the order, then just stands there waiting
+        for the food. Ten tables, ten waiters, mostly standing around. That's
+        how older web servers worked: one worker per connection.
+      </p>
+      <p>
+        In the second restaurant, one waiter handles all the tables. While
+        one table's food is cooking, the waiter moves on to the next table.
+        Nobody stands still. That's NGINX.
+      </p>
+
+      <div class="viz">
+        <p class="viz-title">Old way: one waiter per table</p>
+        <div class="tables tables-old">
+          <div class="table">T1<small>waiting</small></div>
+          <div class="table">T2<small>waiting</small></div>
+          <div class="table">T3<small>waiting</small></div>
+          <div class="table">T4<small>waiting</small></div>
+          <div class="table">T5<small>waiting</small></div>
+          <div class="table">T6<small>waiting</small></div>
+        </div>
+        <p class="viz-title">NGINX: one waiter, every table</p>
+        <div class="tables tables-nginx">
+          <div class="table">T1<small>served</small></div>
+          <div class="table">T2<small>served</small></div>
+          <div class="table">T3<small>served</small></div>
+          <div class="table">T4<small>served</small></div>
+          <div class="table">T5<small>served</small></div>
+          <div class="table">T6<small>served</small></div>
+        </div>
+        <p class="viz-caption">One NGINX worker keeps moving and handles thousands of connections.</p>
+      </div>
+
+      <p>
+        In real life, NGINX starts one worker per CPU core
+        (<code>worker_processes auto;</code>), and each worker can handle
+        thousands of connections at once. That's why a small $5 server
+        running NGINX can handle a lot of traffic.
+      </p>
+
+      <h2>Job 1: Serving Static Files</h2>
+      <p>
+        If a customer asks for water, the host doesn't bother the kitchen.
+        The water is right there at the counter, so the host just hands it
+        over.
+      </p>
+      <p>
+        Static files are the water. HTML, CSS, JavaScript and images are
+        already sitting on the disk, so NGINX sends them straight away. Only
+        real "cooking" (like <code>/api/users</code>) goes to your app.
+      </p>
+
+      <div class="viz">
+        <div class="viz-row">
+          <div class="node">Browser<small>customer</small></div>
+          <div class="wire"><span class="packet in1"></span></div>
+          <div class="node main">NGINX<small>host</small></div>
+          <div class="lanes">
+            <div class="lane">
+              <div class="wire"><span class="wire-label">/logo.png</span><span class="packet split-a"></span></div>
+              <div class="node">Disk<small>counter</small></div>
+            </div>
+            <div class="lane">
+              <div class="wire"><span class="wire-label">/api/users</span><span class="packet split-b"></span></div>
+              <div class="node">App<small>kitchen</small></div>
+            </div>
+          </div>
+        </div>
+        <p class="viz-caption">Files go straight from disk. Only API requests reach the app.</p>
+      </div>
+
+      <p>Example:</p>
+      <pre><code>server {
+    listen 80;
+    server_name example.com;
+
+    root /var/www/example;     # where the files live
+    index index.html;
+
+    location / {
+<span class="hl">        try_files $uri $uri/ =404;</span>
+    }
+}</code></pre>
+      <p>
+        <code>try_files</code> means: look for the exact file, then a folder
+        with that name, and if neither exists, return 404.
+      </p>
+
+      <h2>Job 2: Reverse Proxy</h2>
+      <p>
+        When a customer orders food, the host takes the order to the kitchen,
+        waits for the plate and brings it back. The customer never sees the
+        kitchen.
+      </p>
+      <p>
+        That's a reverse proxy. Your Node app runs on
+        <code>localhost:3000</code>, hidden from the internet. NGINX sits in
+        front on port 80/443, passes the request to the app and returns the
+        answer.
+      </p>
+
+      <div class="viz">
+        <div class="viz-row proxy">
+          <div class="node to-browser">Browser<small>customer</small></div>
+          <div class="wire w1"><span class="packet req" data-label="GET /"></span><span class="packet res" data-label="200 OK"></span></div>
+          <div class="node main">NGINX<small>:443 · host</small></div>
+          <div class="wire w2"><span class="packet req" data-label="GET /"></span><span class="packet res" data-label="200 OK"></span></div>
+          <div class="node to-app">Node app<small>:3000 · kitchen</small></div>
+        </div>
+        <p class="viz-caption">● request goes in, ○ response comes back. The app is never exposed.</p>
+      </div>
+
+      <p>Example:</p>
+      <pre><code>server {
+    listen 80;
+    server_name example.com;
+
+    location / {
+<span class="hl">        proxy_pass http://127.0.0.1:3000;</span>
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}</code></pre>
+      <p>
+        The <code>proxy_set_header</code> lines pass along who the real
+        customer is. Without them, your app thinks every request comes from
+        127.0.0.1 (NGINX itself).
+      </p>
+      <p>You can mix both jobs. Files from disk, API to the app:</p>
+      <pre><code>location /api/ {
+    proxy_pass http://127.0.0.1:3000;
+}
+
+location / {
+    root /var/www/example;
+    try_files $uri /index.html;
+}</code></pre>
+
+      <h2>Job 3: Load Balancing</h2>
+      <p>
+        On a busy night, one chef isn't enough. So the restaurant hires three,
+        and the host gives the orders out in turn: first order to chef 1,
+        next to chef 2, next to chef 3, then back to chef 1.
+      </p>
+
+      <div class="viz">
+        <div class="viz-row">
+          <div class="node">Users<small>customers</small></div>
+          <div class="wire"><span class="packet in1"></span></div>
+          <div class="node main">NGINX<small>host</small></div>
+          <div class="lanes">
+            <div class="lane">
+              <div class="wire"><span class="packet lb lb1"></span></div>
+              <div class="node s1">App 1<small>chef 1</small></div>
+            </div>
+            <div class="lane">
+              <div class="wire"><span class="packet lb lb2"></span></div>
+              <div class="node s2">App 2<small>chef 2</small></div>
+            </div>
+            <div class="lane">
+              <div class="wire"><span class="packet lb lb3"></span></div>
+              <div class="node s3">App 3<small>chef 3</small></div>
+            </div>
+          </div>
+        </div>
+        <p class="viz-caption">Round robin: each request goes to the next server in line.</p>
+      </div>
+
+      <p>Example:</p>
+      <pre><code><span class="hl">upstream app_servers {</span>
+    server 10.0.0.11:3000;
+    server 10.0.0.12:3000;
+    server 10.0.0.13:3000;
+}
+
+server {
+    listen 80;
+    server_name example.com;
+
+    location / {
+<span class="hl">        proxy_pass http://app_servers;</span>
+    }
+}</code></pre>
+      <p>Round robin is the default. You can change how NGINX picks a server:</p>
+      <ul>
+        <li><code>least_conn;</code> sends the order to the chef with the fewest orders right now.</li>
+        <li><code>ip_hash;</code> always sends the same customer to the same chef. Useful when login sessions are stored on one server.</li>
+      </ul>
+      <p>
+        If one server dies, NGINX notices the failed requests and stops
+        sending orders to it for a while. The restaurant keeps running.
+      </p>
+
+      <div class="viz">
+        <div class="viz-row">
+          <div class="node">Users<small>customers</small></div>
+          <div class="wire"><span class="packet in1"></span></div>
+          <div class="node main">NGINX<small>host</small></div>
+          <div class="lanes">
+            <div class="lane">
+              <div class="wire"><span class="packet fo1"></span></div>
+              <div class="node f1">App 1<small>chef 1</small></div>
+            </div>
+            <div class="lane">
+              <div class="wire cut"></div>
+              <div class="node down">App 2<small>✕ down</small></div>
+            </div>
+            <div class="lane">
+              <div class="wire"><span class="packet fo3"></span></div>
+              <div class="node f3">App 3<small>chef 3</small></div>
+            </div>
+          </div>
+        </div>
+        <p class="viz-caption">App 2 is down, so NGINX skips it. Users don't notice.</p>
+      </div>
+
+      <h2>Job 4: HTTPS</h2>
+      <p>
+        The host checks reservations at the door so the kitchen doesn't have
+        to. In the same way, NGINX handles HTTPS: it does the encryption
+        work, then talks to your app over plain HTTP inside the server. This
+        is called SSL termination.
+      </p>
+      <div class="viz">
+        <div class="viz-row https">
+          <div class="node">Browser<small>customer</small></div>
+          <div class="wire w1 secure"><span class="packet locked" data-label="🔒 HTTPS"></span></div>
+          <div class="node main">NGINX<small>decrypts · host</small></div>
+          <div class="wire w2"><span class="packet" data-label="HTTP"></span></div>
+          <div class="node">App<small>kitchen</small></div>
+        </div>
+        <p class="viz-caption">Encrypted on the internet (green), plain HTTP inside your own server.</p>
+      </div>
+
+      <p>The easiest way to get a free certificate is Certbot:</p>
+      <p>Command:</p>
+      <pre><code>sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx -d example.com -d www.example.com</code></pre>
+      <p>
+        Certbot edits your NGINX config for you and renews the certificate
+        automatically. To send everyone from http to https:
+      </p>
+      <p>Example:</p>
+      <pre><code>server {
+    listen 80;
+    server_name example.com www.example.com;
+<span class="hl">    return 301 https://$host$request_uri;</span>
+}</code></pre>
+
+      <h2>Job 5: Caching</h2>
+      <p>
+        If everyone orders the same soup, a smart host keeps a few bowls warm
+        at the counter. The first customer waits for the kitchen. Everyone
+        after that gets a bowl right away, and the kitchen can rest.
+      </p>
+      <p>
+        NGINX can do the same. It saves the app's answer for a while and
+        sends that copy to the next people who ask.
+      </p>
+
+      <div class="viz">
+        <p class="viz-title">1st visit: cooked in the kitchen</p>
+        <div class="viz-row proxy">
+          <div class="node to-browser">Browser<small>customer</small></div>
+          <div class="wire w1"><span class="packet req" data-label="GET /menu"></span><span class="packet res" data-label="MISS"></span></div>
+          <div class="node main">NGINX<small>saves a copy</small></div>
+          <div class="wire w2"><span class="packet req" data-label="GET /menu"></span><span class="packet res" data-label="200 OK"></span></div>
+          <div class="node to-app">App<small>kitchen</small></div>
+        </div>
+        <p class="viz-title">2nd visit: served from the counter</p>
+        <div class="viz-row cached">
+          <div class="node">Browser<small>customer</small></div>
+          <div class="wire w1"><span class="packet req" data-label="GET /menu"></span><span class="packet res" data-label="HIT"></span></div>
+          <div class="node main">NGINX<small>from cache</small></div>
+          <div class="wire w2"></div>
+          <div class="node idle">App<small>resting</small></div>
+        </div>
+        <p class="viz-caption">The second answer never touches the app, so it's much faster.</p>
+      </div>
+
+      <p>Example:</p>
+      <pre><code># inside the http { } block
+<span class="hl">proxy_cache_path /var/cache/nginx keys_zone=my_cache:10m max_size=1g inactive=60m;</span>
+
+server {
+    location / {
+<span class="hl">        proxy_cache my_cache;</span>
+        proxy_cache_valid 200 10m;        # keep good answers for 10 minutes
+        add_header X-Cache-Status $upstream_cache_status;
+        proxy_pass http://127.0.0.1:3000;
+    }
+}</code></pre>
+      <p>
+        The <code>X-Cache-Status</code> header shows <code>HIT</code> or
+        <code>MISS</code>, so you can check it with
+        <code>curl -I</code>. Don't cache pages that are different for each
+        user, like a dashboard or a cart.
+      </p>
+
+      <h2>How the Config Is Organized</h2>
+      <p>
+        Here's a second picture that helps with reading config files. Think
+        of it as an apartment building:
+      </p>
+      <ul>
+        <li><code>http { }</code> is the <strong>building</strong>. Settings here apply to everything.</li>
+        <li><code>server { }</code> is one <strong>apartment</strong>, usually one website. <code>server_name</code> is the name on the door.</li>
+        <li><code>location { }</code> is a <strong>room</strong> inside the apartment, one URL path like <code>/api/</code> or <code>/images/</code>.</li>
+      </ul>
+      <pre><code>http {                              # building
+    server {                        # apartment: example.com
+        server_name example.com;
+        location /      { ... }     # room
+        location /api/  { ... }     # room
+    }
+    server {                        # apartment: blog.example.com
+        server_name blog.example.com;
+        location /      { ... }
+    }
+}</code></pre>
+
+      <h2>Where the Files Live</h2>
+      <p>On Ubuntu and Debian:</p>
+      <table>
+        <tr><th>Path</th><th>What it is</th></tr>
+        <tr><td><code>/etc/nginx/nginx.conf</code></td><td>Main config. You rarely touch it.</td></tr>
+        <tr><td><code>/etc/nginx/sites-available/</code></td><td>One file per website. Write your configs here.</td></tr>
+        <tr><td><code>/etc/nginx/sites-enabled/</code></td><td>Links to the sites that are turned on.</td></tr>
+        <tr><td><code>/var/www/</code></td><td>Website files.</td></tr>
+        <tr><td><code>/var/log/nginx/</code></td><td><code>access.log</code> and <code>error.log</code>.</td></tr>
+      </table>
+      <p>
+        To turn a site on, you link it from available to enabled. It's the
+        same <code>ln -s</code> from my
+        <a href="linux-commands.html#ln">Linux commands post</a>.
+        On RHEL or Rocky, configs go in <code>/etc/nginx/conf.d/</code>
+        instead.
+      </p>
+
+      <h2>Commands You'll Use Every Time</h2>
+      <p>After every config change, test first, then reload. Never skip the test.</p>
+      <p>Command:</p>
+      <pre><code><span class="hl">sudo nginx -t                    # check the config for mistakes</span>
+sudo systemctl reload nginx      # apply changes, no downtime
+
+sudo ln -s /etc/nginx/sites-available/example /etc/nginx/sites-enabled/
+sudo systemctl status nginx      # is it running?
+sudo tail -f /var/log/nginx/error.log</code></pre>
+      <p>
+        <code>reload</code> is better than <code>restart</code>. The host
+        learns the new rules without kicking out the customers already
+        inside.
+      </p>
+
+      <h2>Common Errors</h2>
+      <p>These are the ones you'll see most, in restaurant words. Here's the most common one first:</p>
+
+      <div class="viz">
+        <div class="viz-row proxy">
+          <div class="node to-browser">Browser<small>customer</small></div>
+          <div class="wire w1"><span class="packet req" data-label="GET /"></span><span class="packet res err" data-label="502"></span></div>
+          <div class="node main">NGINX<small>host</small></div>
+          <div class="wire w2 cut"><span class="packet req" data-label="GET /"></span></div>
+          <div class="node down">App<small>✕ closed</small></div>
+        </div>
+        <p class="viz-caption">The app isn't running, so NGINX has nothing to pass the order to: 502 Bad Gateway.</p>
+      </div>
+
+      <table class="errors">
+        <tr><th>Error</th><th>Restaurant</th><th>What to check</th></tr>
+        <tr><td class="s5">502 Bad Gateway</td><td>The kitchen is closed.</td><td>Your app isn't running, or it's on a different port than <code>proxy_pass</code>.</td></tr>
+        <tr><td class="s5">504 Gateway Timeout</td><td>The kitchen is too slow.</td><td>The app is stuck or a database query takes too long.</td></tr>
+        <tr><td class="s4">403 Forbidden</td><td>The host isn't allowed into the storeroom.</td><td>File permissions. NGINX runs as <code>www-data</code>, so check with <code>ls -l</code>.</td></tr>
+        <tr><td class="s4">404 Not Found</td><td>That dish isn't on the menu.</td><td>Wrong <code>root</code> path, or the file isn't there.</td></tr>
+        <tr><td class="s4">413 Request Entity Too Large</td><td>The delivery won't fit through the door.</td><td>Upload is too big. Raise <code>client_max_body_size</code> (default is 1M).</td></tr>
+      </table>
+      <p>For any of them, the error log usually tells you exactly what went wrong:</p>
+      <pre><code>sudo tail -n 50 /var/log/nginx/error.log</code></pre>
+
+      <h2>Remember It Like This</h2>
+      <div class="tasks">
+        <div class="task">
+          <p class="task-title">NGINX = the host at the front desk</p>
+          <p class="task-cmds">Customers talk to the host, never to the kitchen.</p>
+        </div>
+        <div class="task">
+          <p class="task-title">Static files = water at the counter</p>
+          <p class="task-cmds">Served right away with <code>root</code> and <code>try_files</code>.</p>
+        </div>
+        <div class="task">
+          <p class="task-title">Reverse proxy = taking orders to the kitchen</p>
+          <p class="task-cmds"><code>proxy_pass http://127.0.0.1:3000;</code></p>
+        </div>
+        <div class="task">
+          <p class="task-title">Load balancing = sharing orders between chefs</p>
+          <p class="task-cmds"><code>upstream</code> + <code>proxy_pass http://app_servers;</code></p>
+        </div>
+        <div class="task">
+          <p class="task-title">HTTPS = checking reservations at the door</p>
+          <p class="task-cmds"><code>certbot --nginx</code></p>
+        </div>
+        <div class="task">
+          <p class="task-title">Caching = soup kept warm at the counter</p>
+          <p class="task-cmds"><code>proxy_cache</code> + <code>proxy_cache_valid</code></p>
+        </div>
+        <div class="task">
+          <p class="task-title">502 = kitchen closed, 504 = kitchen too slow</p>
+          <p class="task-cmds">Check your app first, then <code>error.log</code>.</p>
+        </div>
+      </div>
+
+      <p><a href="index.html">← all posts</a></p>
+    </article>
+  </body>
+</html>

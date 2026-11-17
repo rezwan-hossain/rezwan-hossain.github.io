@@ -1,0 +1,1592 @@
+/*
+  Styles for linux-commands.html only.
+
+  1. .term   a terminal window that types commands by itself
+  2. .pipe   log lines riding through grep: only errors make it to wc -l
+  3. .perm   chmod 755 decoded into r/w/x bits
+  4. .tree   cd moving a "you are here" marker around a folder tree
+  5. .shred  rm turning a file into dust
+  6. .top    live CPU bars like an equalizer
+  7. .disk   df: a disk filling up
+  8. .stream tail -f: a log that keeps scrolling
+  9. .clock  crontab firing a job at 2 o'clock
+  10. .mini  one small demo for every other command, built from
+      reusable pieces (looping terminal, pop-in items, a box-to-box
+      lane, state switcher, line scanner, bars and lights)
+  11. cheat sheet table
+  No JavaScript. Typing uses steps() on width, which works because
+  the font is monospace (every letter is exactly 1ch wide).
+*/
+
+
+/* ---------- colors used on this page ---------- */
+
+.post {
+  --line: #333;
+  --muted: #777;
+  --green: #8bd17c;
+  --blue: #7fb2e6;
+  --red: #e06c6c;
+  --amber: #f0b44c;
+}
+
+
+/* ---------- 1. typing terminal ---------- */
+
+.term {
+  margin: 28px 0;
+  border: 1px solid #3a3a3f;
+  border-radius: 8px;
+  background: #0f0f11;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.term-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 12px;
+  border-bottom: 1px solid #26262a;
+  background: #1b1b1f;
+}
+
+/* the three window buttons */
+.term-bar i {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+}
+
+.term-bar i:nth-child(1) { background: #ff5f57; }
+.term-bar i:nth-child(2) { background: #febc2e; }
+.term-bar i:nth-child(3) { background: #28c840; }
+
+.term-bar span {
+  flex: 1;
+  margin-right: 45px;
+  color: var(--muted);
+  font-size: 11px;
+  text-align: center;
+}
+
+.term-body {
+  padding: 14px 16px 16px;
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+.post .term-body p {
+  margin: 0;
+  color: #ccc;
+  white-space: pre;
+}
+
+.t-prompt {
+  color: var(--green);
+}
+
+/* each line waits for its turn (--d), then shows up */
+.t-line,
+.t-out {
+  opacity: 0;
+  animation: appear 0.01s forwards;
+  animation-delay: var(--d);
+}
+
+/* the command types itself out, one letter at a time (--n letters) */
+.t-cmd {
+  display: inline-block;
+  width: 0;
+  overflow: hidden;
+  vertical-align: bottom;
+  color: #fff;
+  animation: type 0.8s steps(var(--n)) forwards;
+  animation-delay: var(--d);
+}
+
+.t-dir {
+  color: var(--blue);
+}
+
+.t-caret {
+  display: inline-block;
+  width: 8px;
+  height: 15px;
+  vertical-align: text-bottom;
+  background: #ccc;
+  animation: caret 1s steps(1) infinite;
+}
+
+@keyframes type {
+  to { width: calc(var(--n) * 1ch); }
+}
+
+@keyframes appear {
+  to { opacity: 1; }
+}
+
+@keyframes caret {
+  50% { opacity: 0; }
+}
+
+
+/* ---------- 2. pipe: grep filters, wc counts ---------- */
+
+.pipe {
+  margin: 24px 0;
+  padding: 30px 16px 12px;
+  border: 1px solid var(--line);
+  background: #19191b;
+}
+
+.pipe-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stage {
+  flex: none;
+  padding: 8px 10px;
+  border: 1px solid #555;
+  background: #232325;
+  font-size: 12px;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.stage b {
+  display: block;
+  color: var(--red);
+  font-size: 20px;
+  animation: bump 6s infinite;
+}
+
+/* the conveyor belt the log lines ride on */
+.belt {
+  position: relative;
+  flex: 1;
+  height: 54px;
+  border-top: 1px dashed #333;
+  border-bottom: 1px dashed #333;
+}
+
+/* grep sits in the middle of the belt */
+.filter {
+  position: absolute;
+  top: -8px;
+  bottom: -8px;
+  left: 50%;
+  width: 70px;
+  margin-left: -35px;
+  border: 1px solid var(--amber);
+  background: rgba(240, 180, 76, 0.06);
+}
+
+/* the "grep" label floats above the gate, so chips don't cover it */
+.filter span {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--amber);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.chip {
+  position: absolute;
+  top: 17px;
+  left: 0;
+  width: 46px;
+  padding: 2px 0;
+  font-size: 10px;
+  line-height: 1.4;
+  text-align: center;
+  opacity: 0;
+  animation: 6s linear infinite;
+  animation-delay: var(--d);
+}
+
+/* INFO lines get dropped by grep */
+.chip.info {
+  border: 1px solid #555;
+  color: #999;
+  animation-name: ride-drop;
+}
+
+/* ERROR lines pass through */
+.chip.error {
+  border: 1px solid var(--red);
+  color: var(--red);
+  background: rgba(224, 108, 108, 0.1);
+  animation-name: ride-pass;
+}
+
+.post .pipe-caption {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+@keyframes ride-pass {
+  0% { left: 0; opacity: 0; }
+  3% { opacity: 1; }
+  42% { left: calc(100% - 46px); opacity: 1; }
+  45%, 100% { left: calc(100% - 46px); opacity: 0; }
+}
+
+@keyframes ride-drop {
+  0% { left: 0; opacity: 0; transform: none; }
+  3% { opacity: 1; }
+  21% { left: calc(50% - 23px); opacity: 1; transform: none; }
+  28%, 100% { left: calc(50% - 23px); opacity: 0; transform: translateY(22px) rotate(12deg); }
+}
+
+/* the counter jumps each time an error arrives */
+@keyframes bump {
+  0%, 5%, 12%, 55%, 62%, 88%, 96%, 100% { transform: none; }
+  8%, 58%, 92% { transform: scale(1.4); text-shadow: 0 0 10px var(--red); }
+}
+
+
+/* ---------- 3. chmod decoder ---------- */
+
+.perm {
+  margin: 24px 0;
+  padding: 18px 16px 14px;
+  border: 1px solid var(--line);
+  background: #19191b;
+  text-align: center;
+}
+
+.perm-cmd {
+  margin-bottom: 16px;
+  font-size: 16px;
+}
+
+.perm-cmd b,
+.pg-sum b {
+  display: inline-block;
+  color: var(--green);
+  animation: pulse 6s infinite;
+}
+
+.perm-groups {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.pg {
+  padding: 10px 6px;
+  border: 1px solid var(--line);
+}
+
+.post .pg p {
+  margin: 0;
+  font-size: 11px;
+}
+
+.pg-name {
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.bits {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin: 8px 0;
+}
+
+.bits span {
+  width: 30px;
+  padding: 4px 0;
+  border: 1px solid var(--line);
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 1.2;
+  animation: scan 6s infinite;
+}
+
+.bits small {
+  display: block;
+  font-size: 9px;
+  font-weight: normal;
+}
+
+.bits .on {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.bits .off {
+  color: #444;
+  text-decoration: line-through;
+}
+
+.post .perm-ls {
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.perm-ls code {
+  color: var(--green);
+}
+
+/* a scanner passes over the 9 bits, left to right */
+.pg:nth-child(1) .bits span:nth-child(1) { animation-delay: 0s; }
+.pg:nth-child(1) .bits span:nth-child(2) { animation-delay: 0.3s; }
+.pg:nth-child(1) .bits span:nth-child(3) { animation-delay: 0.6s; }
+.pg:nth-child(2) .bits span:nth-child(1) { animation-delay: 1.5s; }
+.pg:nth-child(2) .bits span:nth-child(2) { animation-delay: 1.8s; }
+.pg:nth-child(2) .bits span:nth-child(3) { animation-delay: 2.1s; }
+.pg:nth-child(3) .bits span:nth-child(1) { animation-delay: 3s; }
+.pg:nth-child(3) .bits span:nth-child(2) { animation-delay: 3.3s; }
+.pg:nth-child(3) .bits span:nth-child(3) { animation-delay: 3.6s; }
+
+/* ...and each group's number lights up when its scan is done */
+.perm-cmd b:nth-of-type(1),
+.pg:nth-child(1) .pg-sum b { animation-delay: 0.9s; }
+.perm-cmd b:nth-of-type(2),
+.pg:nth-child(2) .pg-sum b { animation-delay: 2.4s; }
+.perm-cmd b:nth-of-type(3),
+.pg:nth-child(3) .pg-sum b { animation-delay: 3.9s; }
+
+@keyframes scan {
+  0%, 5% {
+    background: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.35);
+  }
+  9%, 100% {
+    background: none;
+    box-shadow: none;
+  }
+}
+
+@keyframes pulse {
+  0%, 6% { transform: scale(1.5); text-shadow: 0 0 12px var(--green); }
+  12%, 100% { transform: none; text-shadow: none; }
+}
+
+
+
+/* ---------- shared box for the small demos below ---------- */
+
+.demo {
+  margin: 20px 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  background: #19191b;
+  font-size: 12px;
+}
+
+.post .demo-caption {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+
+/* ---------- 4. cd: you are here ---------- */
+
+/* 8s loop in four 2s steps: cd /  →  cd /home  →  cd user  →  cd .. */
+.tree {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: center;
+}
+
+/* the four commands sit on top of each other, one visible at a time */
+.tree-cmds {
+  position: relative;
+  height: 44px;
+}
+
+.tree-cmds p {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  animation: quarter 8s infinite;
+}
+
+.tree-cmds p:nth-child(2) { animation-delay: 2s; }
+.tree-cmds p:nth-child(3) { animation-delay: 4s; }
+.tree-cmds p:nth-child(4) { animation-delay: 6s; }
+
+.tree-cmds code {
+  color: #fff;
+  font-size: 14px;
+}
+
+.tree-cmds small {
+  display: block;
+  color: var(--muted);
+}
+
+.post .tree-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tree-list li {
+  padding: 1px 6px;
+  white-space: pre;
+  border-left: 2px solid transparent;
+  color: #888;
+}
+
+/* "/" is current in step 1, "user" in step 3, "home" in steps 2 and 4 */
+.tree-list .t-root { animation: here-q 8s infinite; }
+.tree-list .t-user { animation: here-q 8s infinite 4s; }
+.tree-list .t-home { animation: here-half 8s infinite 2s; }
+
+@keyframes quarter {
+  0%, 24% { opacity: 1; }
+  25%, 100% { opacity: 0; }
+}
+
+@keyframes here-q {
+  0%, 24% { color: var(--green); border-color: var(--green); background: rgba(139, 209, 124, 0.08); }
+  25%, 100% { color: #888; border-color: transparent; background: none; }
+}
+
+@keyframes here-half {
+  0%, 24%, 50%, 74% { color: var(--green); border-color: var(--green); background: rgba(139, 209, 124, 0.08); }
+  25%, 49%, 75%, 100% { color: #888; border-color: transparent; background: none; }
+}
+
+
+/* ---------- 5. rm: the file turns to dust ---------- */
+
+.shred {
+  position: relative;
+  height: 90px;
+  text-align: center;
+}
+
+.shred-cmd {
+  color: var(--red);
+}
+
+.file {
+  position: absolute;
+  top: 30px;
+  left: 50%;
+  width: 56px;
+  margin-left: -28px;
+  padding: 6px 0;
+  border: 1px solid #888;
+  border-radius: 2px 12px 2px 2px;
+  background: #232325;
+  color: #ddd;
+  font-size: 10px;
+  animation: delete 5s infinite;
+}
+
+/* bits of dust fly out when the file disappears */
+.dust {
+  position: absolute;
+  top: 50px;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  background: #aaa;
+  opacity: 0;
+  animation: dust 5s infinite;
+}
+
+.dust:nth-of-type(1) { --x: -50px; --y: -20px; }
+.dust:nth-of-type(2) { --x: 40px; --y: -26px; }
+.dust:nth-of-type(3) { --x: -34px; --y: 22px; }
+.dust:nth-of-type(4) { --x: 54px; --y: 14px; }
+.dust:nth-of-type(5) { --x: -10px; --y: 30px; }
+.dust:nth-of-type(6) { --x: 18px; --y: -34px; }
+
+.gone {
+  position: absolute;
+  top: 38px;
+  left: 0;
+  right: 0;
+  color: var(--red);
+  opacity: 0;
+  animation: gone 5s infinite;
+}
+
+@keyframes delete {
+  0%, 30% { transform: none; opacity: 1; filter: none; }
+  33% { transform: translateX(-4px) rotate(-3deg); }
+  36% { transform: translateX(4px) rotate(3deg); }
+  39% { transform: translateX(-3px); }
+  42% { transform: none; opacity: 1; filter: none; }
+  50%, 92% { transform: scale(0.4); opacity: 0; filter: blur(4px); }
+  100% { transform: none; opacity: 1; filter: none; }
+}
+
+@keyframes dust {
+  0%, 42% { transform: none; opacity: 0; }
+  44% { opacity: 1; }
+  58%, 100% { transform: translate(var(--x), var(--y)); opacity: 0; }
+}
+
+@keyframes gone {
+  0%, 52% { opacity: 0; }
+  58%, 88% { opacity: 1; }
+  92%, 100% { opacity: 0; }
+}
+
+
+/* ---------- 6. top: CPU equalizer ---------- */
+
+.top-row {
+  display: grid;
+  grid-template-columns: 70px 1fr;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.top-row:last-of-type {
+  margin-bottom: 0;
+}
+
+.top-bar {
+  height: 10px;
+  background: #2a2a2d;
+}
+
+/* each bar bounces at its own speed, so it looks alive */
+.top-bar i {
+  display: block;
+  width: var(--hi);
+  height: 100%;
+  background: var(--green);
+  animation: cpu var(--t) ease-in-out infinite alternate;
+}
+
+/* the busy one goes red at its peak */
+.top-row.hot .top-bar i {
+  animation-name: cpu-hot;
+}
+
+@keyframes cpu {
+  from { width: var(--lo); }
+  to { width: var(--hi); }
+}
+
+@keyframes cpu-hot {
+  from { width: var(--lo); background: var(--amber); }
+  to { width: var(--hi); background: var(--red); }
+}
+
+
+/* ---------- 7. df: the disk fills up ---------- */
+
+.disk-row {
+  display: grid;
+  grid-template-columns: 70px 1fr 54px;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.disk-bar {
+  height: 14px;
+  border: 1px solid #444;
+}
+
+.disk-bar i {
+  display: block;
+  height: 100%;
+  background: var(--green);
+}
+
+.disk-row.fill .disk-bar i {
+  animation: fill 7s infinite;
+}
+
+.disk-row b {
+  font-weight: normal;
+  color: var(--muted);
+}
+
+.disk-row.fill b {
+  color: var(--red);
+  animation: warn 7s infinite;
+}
+
+@keyframes fill {
+  0% { width: 30%; background: var(--green); }
+  45% { background: var(--amber); }
+  70%, 92% { width: 96%; background: var(--red); }
+  100% { width: 30%; background: var(--green); }
+}
+
+@keyframes warn {
+  0%, 68% { opacity: 0; }
+  70%, 92% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+
+/* ---------- 8. tail -f: live log ---------- */
+
+.stream {
+  position: relative;
+  height: 132px;
+  overflow: hidden;
+  padding: 0;
+  background: #0f0f11;
+}
+
+/* the log list is written twice, and moves up by exactly one copy,
+   so the loop has no visible jump */
+.post .stream-lines {
+  margin: 0;
+  padding: 10px 14px;
+  list-style: none;
+  animation: scroll-up 12s linear infinite;
+}
+
+.stream-lines li {
+  height: 22px;
+  color: #999;
+  white-space: nowrap;
+}
+
+.stream-lines .err {
+  color: var(--red);
+}
+
+.stream-lines .warn {
+  color: var(--amber);
+}
+
+/* fade the top and bottom edges */
+.stream::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(#0f0f11, transparent 25%, transparent 75%, #0f0f11);
+  pointer-events: none;
+}
+
+.live {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  z-index: 1;
+  color: var(--red);
+  font-size: 10px;
+  letter-spacing: 1px;
+  animation: caret 1.2s steps(1) infinite;
+}
+
+@keyframes scroll-up {
+  to { transform: translateY(-50%); }
+}
+
+
+/* ---------- 9. crontab: the clock fires the job ---------- */
+
+/* 12s loop = one full turn of the hour hand. 2 o'clock = 1/6 of the turn */
+.cron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+}
+
+.clock {
+  position: relative;
+  flex: none;
+  width: 90px;
+  height: 90px;
+  border: 2px solid #555;
+  border-radius: 50%;
+}
+
+/* the 2 o'clock mark */
+.clock::before {
+  content: "2";
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  color: var(--amber);
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.hand {
+  position: absolute;
+  bottom: 50%;
+  left: 50%;
+  width: 2px;
+  margin-left: -1px;
+  transform-origin: bottom center;
+  background: #ddd;
+}
+
+.hand.hour {
+  height: 24px;
+  width: 4px;
+  margin-left: -2px;
+  animation: spin 12s linear infinite;
+}
+
+.hand.min {
+  height: 36px;
+  background: #888;
+  animation: spin 1s linear infinite;
+}
+
+.cron-job {
+  min-width: 140px;
+}
+
+.cron-job code {
+  color: #fff;
+}
+
+.cron-job p {
+  margin: 4px 0 0;
+}
+
+/* "backup.sh ran" flashes right as the hour hand passes 2 */
+.cron-ran {
+  color: var(--green);
+  opacity: 0;
+  animation: ran 12s infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes ran {
+  0%, 16% { opacity: 0; }
+  17%, 33% { opacity: 1; }
+  36%, 100% { opacity: 0; }
+}
+
+
+/* ==========================================================
+   10. one mini demo per command
+   ========================================================== */
+
+.mini {
+  position: relative;
+  margin: 18px 0;
+  padding: 14px 16px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: #19191b;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.post .mini p {
+  margin: 0;
+}
+
+.post .mini-cap {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 11px;
+  text-align: center;
+}
+
+.mini .g { color: var(--green); }
+.mini .b { color: var(--blue); }
+.mini .r { color: var(--red); }
+.mini .a { color: var(--amber); }
+.mini .m { color: var(--muted); }
+
+
+/* ---------- looping terminal: types, shows output, erases, repeats ---------- */
+
+.lt {
+  background: #0f0f11;
+}
+
+.post .lt p {
+  color: #ccc;
+  white-space: pre;
+}
+
+.lt-cmd {
+  display: inline-block;
+  width: 0;
+  overflow: hidden;
+  vertical-align: bottom;
+  color: #fff;
+  animation: lt-type 6s steps(var(--n)) infinite;
+}
+
+.post .lt-out {
+  opacity: 0;
+  animation: lt-out 6s infinite;
+}
+
+/* a second command in the same box types after the first one */
+.lt-cmd.c2 { animation-name: lt-type2; }
+.post .lt-out.c2 { animation-name: lt-out2; }
+
+@keyframes lt-type {
+  0% { width: 0; }
+  20%, 90% { width: calc(var(--n) * 1ch); }
+  100% { width: 0; }
+}
+
+@keyframes lt-out {
+  0%, 24% { opacity: 0; }
+  28%, 88% { opacity: 1; }
+  92%, 100% { opacity: 0; }
+}
+
+@keyframes lt-type2 {
+  0%, 38% { width: 0; }
+  58%, 90% { width: calc(var(--n) * 1ch); }
+  100% { width: 0; }
+}
+
+@keyframes lt-out2 {
+  0%, 60% { opacity: 0; }
+  64%, 88% { opacity: 1; }
+  92%, 100% { opacity: 0; }
+}
+
+
+/* ---------- pop-in: items appear one by one (--i = order) ---------- */
+
+.pop {
+  display: inline-block;
+  opacity: 0;
+  animation: pop 5s infinite;
+  animation-delay: calc(var(--i, 0) * 0.35s);
+}
+
+.pop.row {
+  display: block;
+  white-space: pre;
+}
+
+/* keep spaces in lines that line up like a table (ip, ss) */
+.post .mini .cols {
+  white-space: pre;
+}
+
+@keyframes pop {
+  0% { opacity: 0; transform: scale(0.6); }
+  6% { opacity: 1; transform: scale(1.08); }
+  9%, 80% { opacity: 1; transform: none; }
+  90%, 100% { opacity: 0; transform: none; }
+}
+
+/* file and folder chips */
+.ico {
+  margin: 3px;
+  padding: 3px 8px;
+  border: 1px solid #555;
+  background: #232325;
+}
+
+.ico.dir {
+  border-color: #3d5266;
+  color: var(--blue);
+}
+
+.ico.hidden {
+  border-style: dashed;
+  color: var(--muted);
+}
+
+
+/* ---------- lane: something travels from one box to another ---------- */
+
+.lanebox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.end {
+  flex: none;
+  min-width: 70px;
+  padding: 8px 10px;
+  border: 1px solid #555;
+  background: #232325;
+  text-align: center;
+}
+
+.end small {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.track {
+  position: relative;
+  flex: 1;
+  min-width: 40px;
+  height: 2px;
+  background: #333;
+}
+
+.mover {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  padding: 1px 6px;
+  border: 1px solid var(--green);
+  background: #19191b;
+  color: var(--green);
+  font-size: 10px;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(-50%);
+  animation: slide 4s infinite;
+  animation-delay: var(--d, 0s);
+}
+
+.mover.back {
+  animation-name: slide-back;
+}
+
+.mover.bad {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+/* something shows up at the far end once the mover arrives */
+.land {
+  opacity: 0;
+  animation: land 4s infinite;
+  animation-delay: var(--d, 0s);
+}
+
+/* something leaves the first box (mv) */
+.leave {
+  animation: leave 4s infinite;
+}
+
+/* a process that gets killed */
+.die {
+  animation: die 4s infinite;
+}
+
+@keyframes slide {
+  0% { left: 0; opacity: 0; transform: translate(0, -50%); }
+  5% { opacity: 1; }
+  45% { left: 100%; opacity: 1; transform: translate(-100%, -50%); }
+  50%, 100% { left: 100%; opacity: 0; transform: translate(-100%, -50%); }
+}
+
+@keyframes slide-back {
+  0% { left: 100%; opacity: 0; transform: translate(-100%, -50%); }
+  5% { opacity: 1; }
+  45% { left: 0; opacity: 1; transform: translate(0, -50%); }
+  50%, 100% { left: 0; opacity: 0; transform: translate(0, -50%); }
+}
+
+@keyframes land {
+  0%, 44% { opacity: 0; transform: scale(0.7); }
+  50%, 88% { opacity: 1; transform: none; }
+  96%, 100% { opacity: 0; }
+}
+
+@keyframes leave {
+  0%, 4% { opacity: 1; }
+  10%, 90% { opacity: 0.15; }
+  100% { opacity: 1; }
+}
+
+@keyframes die {
+  0%, 44% { opacity: 1; color: inherit; text-decoration: none; }
+  48% { transform: translateX(-3px); }
+  52% { transform: translateX(3px); }
+  56%, 90% { opacity: 0.35; color: var(--red); text-decoration: line-through; transform: none; }
+  100% { opacity: 1; }
+}
+
+
+/* ---------- state switcher: 2, 3 or 4 states take turns (--i = state) ---------- */
+
+.swap {
+  position: relative;
+  min-height: var(--h, 44px);
+}
+
+.swap > * {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+
+.swap.s2 > * { animation: st2 6s infinite; animation-delay: calc(var(--i) * 3s); }
+.swap.s3 > * { animation: st3 7.5s infinite; animation-delay: calc(var(--i) * 2.5s); }
+.swap.s4 > * { animation: st4 8s infinite; animation-delay: calc(var(--i) * 2s); }
+
+@keyframes st2 {
+  0% { opacity: 0; transform: translateY(5px); }
+  4%, 46% { opacity: 1; transform: none; }
+  50%, 100% { opacity: 0; }
+}
+
+@keyframes st3 {
+  0% { opacity: 0; transform: translateY(5px); }
+  3%, 31% { opacity: 1; transform: none; }
+  34%, 100% { opacity: 0; }
+}
+
+@keyframes st4 {
+  0% { opacity: 0; transform: translateY(5px); }
+  3%, 23% { opacity: 1; transform: none; }
+  25%, 100% { opacity: 0; }
+}
+
+/* status dot for services */
+.dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: #666;
+}
+
+.dot.g { background: var(--green); box-shadow: 0 0 8px var(--green); }
+.dot.a { background: var(--amber); animation: led 0.6s infinite; }
+.dot.r { background: var(--red); box-shadow: 0 0 8px var(--red); }
+
+
+/* ---------- line scanner: every line gets checked, matches stay lit ---------- */
+
+.post .scan p {
+  padding: 1px 8px;
+  border-left: 2px solid transparent;
+  color: #666;
+  white-space: pre;
+  animation: miss 5s infinite;
+  animation-delay: calc(var(--i, 0) * 0.45s);
+}
+
+.post .scan p.hit {
+  animation-name: hit;
+}
+
+@keyframes miss {
+  0%, 2% { color: #ddd; background: rgba(255, 255, 255, 0.07); }
+  8%, 100% { color: #666; background: none; }
+}
+
+@keyframes hit {
+  0% { color: #666; }
+  3%, 85% { color: var(--amber); border-color: var(--amber); background: rgba(240, 180, 76, 0.08); }
+  95%, 100% { color: #666; border-color: transparent; background: none; }
+}
+
+.scan-tag {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  padding: 0 6px;
+  border: 1px solid var(--amber);
+  color: var(--amber);
+  font-size: 10px;
+}
+
+
+/* ---------- growing bars (--w = size, --i = order) ---------- */
+
+.gr {
+  display: grid;
+  grid-template-columns: 74px 1fr 52px;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.gbar {
+  height: 10px;
+  background: #2a2a2d;
+}
+
+.gbar i {
+  display: block;
+  width: var(--w);
+  height: 100%;
+  background: var(--c, var(--green));
+  transform-origin: left;
+  animation: grow 5s infinite;
+  animation-delay: calc(var(--i, 0) * 0.3s);
+}
+
+@keyframes grow {
+  0% { transform: scaleX(0); }
+  25%, 85% { transform: scaleX(1); }
+  100% { transform: scaleX(0); }
+}
+
+
+/* ---------- blinking lights ---------- */
+
+.led {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: led 1.4s infinite;
+  animation-delay: var(--d, 0s);
+}
+
+.led.r {
+  background: var(--red);
+  box-shadow: 0 0 8px var(--red);
+  animation-duration: 0.7s;
+}
+
+@keyframes led {
+  50% { opacity: 0.25; }
+}
+
+
+/* ---------- less: flip through pages ---------- */
+
+.pager {
+  height: 72px;
+  overflow: hidden;
+  border: 1px solid #333;
+  background: #0f0f11;
+}
+
+.pager-in {
+  padding: 3px 10px;
+  animation: pages 7s infinite;
+}
+
+.post .pager-in p {
+  height: 22px;
+  color: #999;
+  white-space: nowrap;
+}
+
+.pager-bar {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  color: var(--muted);
+}
+
+@keyframes pages {
+  0%, 26% { transform: translateY(0); }
+  33%, 59% { transform: translateY(-66px); }
+  66%, 92% { transform: translateY(-132px); }
+  100% { transform: translateY(0); }
+}
+
+
+/* ---------- nano: a tiny editor ---------- */
+
+.editor {
+  border: 1px solid #333;
+  background: #0f0f11;
+}
+
+.post .lt .ed-title {
+  padding: 2px 8px;
+  background: #ccc;
+  color: #111;
+  text-align: center;
+}
+
+.post .ed-body {
+  min-height: 46px;
+  padding: 6px 8px;
+}
+
+.ed-status {
+  padding: 0 8px;
+  text-align: center;
+}
+
+.ed-keys {
+  display: flex;
+  gap: 16px;
+  padding: 2px 8px 4px;
+  color: #999;
+}
+
+.ed-keys b {
+  padding: 0 3px;
+  background: #ccc;
+  color: #111;
+  font-weight: normal;
+}
+
+
+/* ---------- tar: files squeeze into one archive ---------- */
+
+.tarbox {
+  position: relative;
+  height: 64px;
+}
+
+.tf {
+  position: absolute;
+  top: 20px;
+  left: var(--x);
+  padding: 2px 8px;
+  border: 1px solid #555;
+  background: #232325;
+  animation: squeeze 5s infinite;
+}
+
+.archive {
+  position: absolute;
+  top: 12px;
+  right: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--amber);
+  color: var(--amber);
+  background: rgba(240, 180, 76, 0.08);
+  animation: land 5s infinite;
+}
+
+@keyframes squeeze {
+  0%, 20% { left: var(--x); opacity: 1; transform: none; }
+  45% { left: 72%; opacity: 0; transform: scale(0.3); }
+  100% { left: 72%; opacity: 0; }
+}
+
+
+/* ---------- ping: ripples go out, replies come back ---------- */
+
+.pingbox {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 14px;
+  align-items: center;
+}
+
+.radar {
+  position: relative;
+  width: 70px;
+  height: 70px;
+  margin: 0 auto;
+}
+
+.radar::before {
+  content: "";
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+}
+
+.ring {
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--green);
+  border-radius: 50%;
+  opacity: 0;
+  animation: ripple 2s infinite;
+  animation-delay: var(--d, 0s);
+}
+
+@keyframes ripple {
+  0% { opacity: 1; transform: scale(0.1); }
+  100% { opacity: 0; transform: scale(1); }
+}
+
+
+/* ---------- ln: an arrow draws itself to the real file ---------- */
+
+.lnbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.arrow {
+  position: relative;
+  flex: 1;
+  height: 2px;
+}
+
+.arrow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-top: 2px dashed var(--blue);
+  transform-origin: left;
+  animation: draw 4s infinite;
+}
+
+.arrow::after {
+  content: "▶";
+  position: absolute;
+  top: -8px;
+  right: -4px;
+  color: var(--blue);
+  font-size: 11px;
+  animation: land 4s infinite;
+}
+
+.ln-target {
+  animation: glow 4s infinite;
+}
+
+@keyframes draw {
+  0% { transform: scaleX(0); }
+  45%, 90% { transform: scaleX(1); }
+  100% { transform: scaleX(0); }
+}
+
+@keyframes glow {
+  0%, 44% { box-shadow: none; }
+  50%, 88% { border-color: var(--blue); box-shadow: 0 0 12px rgba(127, 178, 230, 0.5); }
+  96%, 100% { box-shadow: none; }
+}
+
+
+/* cheat sheet */
+
+.cheatsheet {
+  display: grid;
+  gap: 20px;
+}
+
+.cheatsheet .group {
+  border: 1px solid #333;
+  background: #19191b;
+}
+
+.cheatsheet .group-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid #333;
+  background: #232325;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.cheatsheet .level {
+  padding: 0 8px;
+  border: 1px solid #555;
+  color: #999;
+  font-size: 12px;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.cheatsheet table {
+  margin: 0;
+  table-layout: fixed;
+  font-size: 14px;
+}
+
+.cheatsheet td:nth-child(2) {
+  width: 120px;
+}
+
+.cheatsheet td {
+  border: none;
+  border-bottom: 1px solid #262628;
+  padding: 7px 14px;
+}
+
+.cheatsheet tr:last-child td {
+  border-bottom: none;
+}
+
+.cheatsheet tr:hover td {
+  background: #202022;
+}
+
+.cheatsheet .num {
+  width: 30px;
+  color: #555;
+}
+
+.cheatsheet a {
+  color: #eee;
+  font-weight: bold;
+}
+
+.post h3[id] {
+  scroll-margin-top: 20px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+.cheatsheet .hint {
+  display: block;
+  color: #777;
+  font-size: 12px;
+}
+
+.cheatsheet .hint b {
+  color: #ccc;
+}
+
+@media (max-width: 500px) {
+  .cheatsheet td {
+    padding: 7px 8px;
+  }
+
+  .cheatsheet table {
+    font-size: 13px;
+  }
+
+  .cheatsheet td:nth-child(2) {
+    width: 80px;
+  }
+
+  .cheatsheet .num {
+    width: 20px;
+  }
+}
+
+
+/* ---------- phones ---------- */
+
+@media (max-width: 500px) {
+  .term-body {
+    font-size: 11px;
+  }
+
+  .filter {
+    width: 54px;
+    margin-left: -27px;
+  }
+
+  .filter span {
+    font-size: 9px;
+  }
+
+  .bits span {
+    width: 22px;
+    font-size: 12px;
+  }
+
+  .tree {
+    grid-template-columns: 1fr;
+  }
+
+  .cron {
+    gap: 14px;
+  }
+
+  .cron-job {
+    min-width: 0;
+  }
+
+  .end {
+    min-width: 0;
+    padding: 6px;
+  }
+
+  .gr {
+    grid-template-columns: 60px 1fr 44px;
+  }
+
+  .pingbox {
+    grid-template-columns: 70px 1fr;
+  }
+}
+
+
+/* ---------- people who turned off animations ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .t-line,
+  .t-out {
+    opacity: 1;
+    animation: none;
+  }
+
+  .t-cmd {
+    width: auto;
+    animation: none;
+  }
+
+  .chip,
+  .stage b,
+  .tree-cmds p,
+  .tree-list li,
+  .file,
+  .dust,
+  .gone,
+  .top-bar i,
+  .disk-bar i,
+  .disk-row b,
+  .stream-lines,
+  .live,
+  .hand,
+  .cron-ran,
+  .lt-cmd,
+  .lt-out,
+  .pop,
+  .mover,
+  .land,
+  .leave,
+  .die,
+  .swap > *,
+  .scan p,
+  .gbar i,
+  .led,
+  .dot,
+  .pager-in,
+  .tf,
+  .archive,
+  .ring,
+  .arrow::before,
+  .arrow::after,
+  .ln-target,
+  .bits span,
+  .perm-cmd b,
+  .pg-sum b {
+    animation: none;
+  }
+
+  .chip.error {
+    opacity: 1;
+    left: calc(100% - 46px);
+  }
+
+  .tree-cmds p:first-child,
+  .cron-ran,
+  .post .lt-out,
+  .pop,
+  .land,
+  .archive,
+  .swap > :first-child {
+    opacity: 1;
+  }
+
+  .lt-cmd {
+    width: auto;
+  }
+}

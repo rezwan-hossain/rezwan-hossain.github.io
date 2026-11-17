@@ -1,0 +1,697 @@
+/*
+  Styles for dns-interview-questions.html only.
+
+  Three animations, no JavaScript:
+  1. .board  airport-style split-flap board: domain names flip into IPs
+  2. .chat   a DNS lookup told as a group chat, one message at a time
+  3. .ttl    a cached record counting down until it expires
+  4. dq-*    one small demo per question, built from reusable pieces:
+             dq-duo (mini chat), dq-rec (flip card), dq-lane (packets),
+             dq-term (looping terminal), dq-ticks (checklist),
+             dq-swap (two states), dq-prop (propagation grid)
+*/
+
+
+/* ---------- colors used on this page ---------- */
+
+.post {
+  --line: #333;
+  --muted: #777;
+  --bright: #eee;
+  --panel: #19191b;
+  --amber: #f0b44c;
+  --blue: #7fb2e6;
+  --bad: #e06c6c;
+}
+
+
+/* ---------- 1. split-flap board ---------- */
+
+.board {
+  margin: 28px 0;
+  padding: 18px 16px 14px;
+  border: 1px solid var(--line);
+  background: #121214;
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.6);
+}
+
+.board-head {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  color: var(--amber);
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+/* one row: the name, and the IP hidden under it */
+.flap {
+  height: 38px;
+  margin-bottom: 8px;
+}
+
+.flap-card {
+  position: relative;
+  height: 100%;
+}
+
+/* the name folds away, then the IP folds in (and back again) */
+.flap-face {
+  animation: flip-front 6s infinite;
+}
+
+.flap-face.ip {
+  animation-name: flip-back;
+}
+
+/* rows flip one after another */
+.board .flap:nth-child(3) .flap-face { animation-delay: 0.4s; }
+.board .flap:nth-child(4) .flap-face { animation-delay: 0.8s; }
+
+.flap-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 12px;
+  border: 1px solid #38383e;
+  /* top half, a thin dark split line, bottom half: like a real flap */
+  background: linear-gradient(#27272c calc(50% - 1px), #0b0b0d calc(50% - 1px) calc(50% + 1px), #202024 calc(50% + 1px));
+  font-size: 15px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.flap-face span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: normal;
+  letter-spacing: 1px;
+}
+
+.flap-face.ip {
+  color: var(--amber);
+  transform: scaleY(0);
+}
+
+/* a face squashed to scaleY(0) is a flat line, so it's invisible */
+@keyframes flip-front {
+  0%, 35% { transform: scaleY(1); }
+  40%, 94% { transform: scaleY(0); }
+  100% { transform: scaleY(1); }
+}
+
+@keyframes flip-back {
+  0%, 40% { transform: scaleY(0); }
+  45%, 85% { transform: scaleY(1); }
+  90%, 100% { transform: scaleY(0); }
+}
+
+
+/* ---------- 2. lookup chat ---------- */
+
+.chat {
+  margin: 24px 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.msg {
+  max-width: 78%;
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  opacity: 0;
+}
+
+.msg b {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: normal;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* questions on the right, answers on the left */
+.msg.ask {
+  margin-left: auto;
+  border: 1px solid #444;
+  border-radius: 12px 12px 2px 12px;
+  color: #ccc;
+}
+
+.msg.reply {
+  border: 1px solid #2f3b48;
+  border-radius: 12px 12px 12px 2px;
+  background: #1c242d;
+  color: var(--blue);
+}
+
+/* the final answer stands out */
+.msg.final {
+  border-color: var(--amber);
+  background: #2a2316;
+  color: var(--amber);
+}
+
+.post .chat-note {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+
+/* ---------- 3. TTL countdown ---------- */
+
+.ttl {
+  margin: 20px 0;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  font-size: 13px;
+}
+
+.ttl-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ttl-bar {
+  height: 6px;
+  margin: 10px 0;
+  background: #2a2a2d;
+}
+
+.ttl-bar i {
+  display: block;
+  height: 100%;
+  animation: drain 6s linear infinite;
+}
+
+.ttl-state {
+  position: relative;
+  min-width: 15ch;
+  text-align: right;
+}
+
+.ttl-state span {
+  position: absolute;
+  right: 0;
+  white-space: nowrap;
+}
+
+.ttl-state .fresh {
+  color: #7fbf7f;
+  animation: show-fresh 6s infinite;
+}
+
+.ttl-state .stale {
+  color: var(--bad);
+  animation: show-stale 6s infinite;
+}
+
+.ttl-row small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+/* shrinks and goes green → amber → red as time runs out */
+@keyframes drain {
+  0% { width: 100%; background: #7fbf7f; }
+  50% { background: var(--amber); }
+  80% { background: var(--bad); }
+  85%, 100% { width: 0; background: var(--bad); }
+}
+
+@keyframes show-fresh {
+  0%, 84% { opacity: 1; }
+  86%, 100% { opacity: 0; }
+}
+
+@keyframes show-stale {
+  0%, 84% { opacity: 0; }
+  86%, 100% { opacity: 1; }
+}
+
+/* chat timing: 18s loop, a new message every ~2s, all clear at 94% */
+.msg:nth-child(1) { animation: msg1 18s infinite; }
+.msg:nth-child(2) { animation: msg2 18s infinite; }
+.msg:nth-child(3) { animation: msg3 18s infinite; }
+.msg:nth-child(4) { animation: msg4 18s infinite; }
+.msg:nth-child(5) { animation: msg5 18s infinite; }
+.msg:nth-child(6) { animation: msg6 18s infinite; }
+.msg:nth-child(7) { animation: msg7 18s infinite; }
+.msg:nth-child(8) { animation: msg8 18s infinite; }
+
+@keyframes msg1 {
+  0%, 3% { opacity: 0; transform: translateY(8px); }
+  6%, 92% { opacity: 1; transform: none; }
+  96%, 100% { opacity: 0; transform: none; }
+}
+
+@keyframes msg2 {
+  0%, 14% { opacity: 0; transform: translateY(8px); }
+  17%, 92% { opacity: 1; transform: none; }
+  96%, 100% { opacity: 0; transform: none; }
+}
+
+@keyframes msg3 {
+  0%, 25% { opacity: 0; transform: translateY(8px); }
+  28%, 92% { opacity: 1; transform: none; }
+  96%, 100% { opacity: 0; transform: none; }
+}
+
+@keyframes msg4 {
+  0%, 36% { opacity: 0; transform: translateY(8px); }
+  39%, 92% { opacity: 1; transform: none; }
+  96%, 100% { opacity: 0; transform: none; }
+}
+
+@keyframes msg5 {
+  0%, 47% { opacity: 0; transform: translateY(8px); }
+  50%, 92% { opacity: 1; transform: none; }
+  96%, 100% { opacity: 0; transform: none; }
+}
+
+@keyframes msg6 {
+  0%, 58% { opacity: 0; transform: translateY(8px); }
+  61%, 92% { opacity: 1; transform: none; }
+  96%, 100% { opacity: 0; transform: none; }
+}
+
+@keyframes msg7 {
+  0%, 69% { opacity: 0; transform: translateY(8px); }
+  72%, 92% { opacity: 1; transform: none; }
+  96%, 100% { opacity: 0; transform: none; }
+}
+
+@keyframes msg8 {
+  0%, 80% { opacity: 0; transform: translateY(8px); }
+  83%, 92% { opacity: 1; transform: none; }
+  96%, 100% { opacity: 0; transform: none; }
+}
+
+
+/* ==========================================================
+   4. one demo per question (all class names start with dq-)
+   ========================================================== */
+
+.dq {
+  position: relative;
+  margin: 16px 0;
+  padding: 14px 16px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.post .dq p {
+  margin: 0;
+}
+
+.post .dq-cap {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 11px;
+  text-align: center;
+}
+
+.dq .am { color: var(--amber); }
+.dq .bl { color: var(--blue); }
+.dq .ok { color: #7fbf7f; }
+.dq .bad { color: var(--bad); }
+.dq .mu { color: var(--muted); }
+
+
+/* ---------- dq-duo: a short chat, messages appear in order (--i) ---------- */
+
+.dq-msg {
+  max-width: 82%;
+  margin-bottom: 8px;
+  padding: 6px 10px;
+  opacity: 0;
+  animation: dq-in 7s infinite;
+  animation-delay: calc(var(--i, 0) * 1.3s);
+}
+
+.dq-msg:last-child {
+  margin-bottom: 0;
+}
+
+.dq-msg b {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: normal;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.dq-msg.ask {
+  margin-left: auto;
+  border: 1px solid #444;
+  border-radius: 12px 12px 2px 12px;
+  color: #ccc;
+}
+
+.dq-msg.reply {
+  border: 1px solid #2f3b48;
+  border-radius: 12px 12px 12px 2px;
+  background: #1c242d;
+  color: var(--blue);
+}
+
+@keyframes dq-in {
+  0% { opacity: 0; transform: translateY(8px); }
+  4%, 82% { opacity: 1; transform: none; }
+  90%, 100% { opacity: 0; transform: none; }
+}
+
+
+/* ---------- dq-rec: flip cards (reuses the board's .flap pieces) ---------- */
+
+.dq-rec .flap:last-child {
+  margin-bottom: 0;
+}
+
+.dq-rec .flap-face {
+  font-size: 13px;
+}
+
+
+/* ---------- dq-lane: packets travel between boxes ---------- */
+
+.dq-lane {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.dq-lane:last-of-type {
+  margin-bottom: 0;
+}
+
+.dq-node {
+  flex: none;
+  min-width: 64px;
+  padding: 6px 8px;
+  border: 1px solid #555;
+  background: #232325;
+  text-align: center;
+}
+
+.dq-node small {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.dq-track {
+  position: relative;
+  flex: 1;
+  min-width: 40px;
+  height: 2px;
+  background: #333;
+}
+
+.dq-mover {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  padding: 1px 6px;
+  border: 1px solid var(--amber);
+  background: var(--panel);
+  color: var(--amber);
+  font-size: 10px;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(-50%);
+  animation: dq-go 4s infinite;
+  animation-delay: var(--d, 0s);
+}
+
+.dq-mover.back {
+  border-color: var(--blue);
+  color: var(--blue);
+  animation-name: dq-back;
+}
+
+.dq-mover.bad {
+  border-color: var(--bad);
+  color: var(--bad);
+}
+
+.dq-mover.ok {
+  border-color: #7fbf7f;
+  color: #7fbf7f;
+}
+
+/* slow = a big TCP answer takes longer */
+.dq-mover.slow {
+  animation-duration: 6s;
+}
+
+@keyframes dq-go {
+  0% { left: 0; opacity: 0; transform: translate(0, -50%); }
+  5% { opacity: 1; }
+  42% { left: 100%; opacity: 1; transform: translate(-100%, -50%); }
+  48%, 100% { left: 100%; opacity: 0; transform: translate(-100%, -50%); }
+}
+
+@keyframes dq-back {
+  0% { left: 100%; opacity: 0; transform: translate(-100%, -50%); }
+  5% { opacity: 1; }
+  42% { left: 0; opacity: 1; transform: translate(0, -50%); }
+  48%, 100% { left: 0; opacity: 0; transform: translate(0, -50%); }
+}
+
+
+/* ---------- dq-term: a terminal that types, answers, clears, repeats ---------- */
+
+.dq-term {
+  background: #0f0f11;
+}
+
+.post .dq-term p {
+  color: #ccc;
+  white-space: pre;
+}
+
+.dq-term .pr {
+  color: #7fbf7f;
+}
+
+.dq-cmd {
+  display: inline-block;
+  width: 0;
+  overflow: hidden;
+  vertical-align: bottom;
+  color: #fff;
+  animation: dq-type 6s steps(var(--n)) infinite;
+}
+
+.post .dq-out {
+  opacity: 0;
+  animation: dq-out 6s infinite;
+}
+
+@keyframes dq-type {
+  0% { width: 0; }
+  20%, 90% { width: calc(var(--n) * 1ch); }
+  100% { width: 0; }
+}
+
+@keyframes dq-out {
+  0%, 24% { opacity: 0; }
+  28%, 88% { opacity: 1; }
+  92%, 100% { opacity: 0; }
+}
+
+
+/* ---------- dq-ticks: a checklist that checks itself (--i = step) ---------- */
+
+.post .dq-ticks {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.post .dq-ticks li {
+  margin-bottom: 4px;
+  color: #666;
+  animation: dq-step 7s infinite;
+  animation-delay: calc(var(--i, 0) * 0.9s);
+}
+
+.dq-ticks i {
+  display: inline-block;
+  position: relative;
+  width: 14px;
+  height: 14px;
+  margin-right: 8px;
+  vertical-align: -2px;
+  border: 1px solid #555;
+}
+
+/* the mark inside the box: ✓ ok, ✗ problem, … waiting, – skipped */
+.dq-ticks i::after {
+  position: absolute;
+  inset: -3px 0 0 1px;
+  font-size: 12px;
+  font-style: normal;
+  opacity: 0;
+  animation: dq-mark 7s infinite;
+  animation-delay: inherit;
+}
+
+.dq-ticks li > i {
+  animation-delay: inherit;
+}
+
+.dq-ticks .y::after { content: "✓"; color: #7fbf7f; }
+.dq-ticks .n::after { content: "✗"; color: var(--bad); }
+.dq-ticks .w::after { content: "…"; color: var(--amber); }
+.dq-ticks .s::after { content: "–"; color: var(--muted); }
+
+@keyframes dq-step {
+  0% { color: #666; }
+  4%, 86% { color: #ddd; }
+  94%, 100% { color: #666; }
+}
+
+@keyframes dq-mark {
+  0% { opacity: 0; transform: scale(2); }
+  5%, 86% { opacity: 1; transform: none; }
+  94%, 100% { opacity: 0; }
+}
+
+
+/* ---------- dq-swap: two states take turns (--i = 0 or 1) ---------- */
+
+.dq-swap {
+  position: relative;
+  min-height: var(--h, 40px);
+}
+
+.dq-swap > * {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  animation: dq-st2 6s infinite;
+  animation-delay: calc(var(--i, 0) * 3s);
+}
+
+@keyframes dq-st2 {
+  0% { opacity: 0; transform: translateY(5px); }
+  4%, 46% { opacity: 1; transform: none; }
+  50%, 100% { opacity: 0; }
+}
+
+
+/* ---------- dq-prop: resolvers around the world pick up the new IP ---------- */
+
+.dq-prop {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+.dq-dot {
+  padding: 6px 0;
+  border: 1px solid var(--bad);
+  color: var(--bad);
+  font-size: 10px;
+  text-align: center;
+  animation: dq-update 8s infinite;
+  animation-delay: calc(var(--i, 0) * 0.45s);
+}
+
+@keyframes dq-update {
+  0%, 10% { border-color: var(--bad); color: var(--bad); background: none; }
+  14%, 88% { border-color: #7fbf7f; color: #7fbf7f; background: rgba(127, 191, 127, 0.08); }
+  94%, 100% { border-color: var(--bad); color: var(--bad); background: none; }
+}
+
+
+/* ---------- phones ---------- */
+
+@media (max-width: 500px) {
+  .flap-face {
+    font-size: 12px;
+  }
+
+  .flap-face span {
+    display: none;
+  }
+
+  .msg {
+    max-width: 90%;
+    font-size: 12px;
+  }
+
+  .dq-msg {
+    max-width: 92%;
+  }
+
+  .dq-node {
+    min-width: 0;
+    padding: 5px;
+  }
+
+  .dq-prop {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+
+/* ---------- people who turned off animations ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .flap-face,
+  .ttl-bar i,
+  .ttl-state span {
+    animation: none;
+  }
+
+  .ttl-state .stale {
+    opacity: 0;
+  }
+
+  .msg {
+    animation: none !important;
+    opacity: 1;
+  }
+
+  .dq-msg,
+  .dq-mover,
+  .dq-cmd,
+  .dq-out,
+  .dq-ticks li,
+  .dq-ticks i::after,
+  .dq-swap > *,
+  .dq-dot {
+    animation: none;
+  }
+
+  .dq-msg,
+  .post .dq-out,
+  .dq-ticks i::after,
+  .dq-swap > :first-child {
+    opacity: 1;
+  }
+
+  .dq-cmd {
+    width: auto;
+  }
+}

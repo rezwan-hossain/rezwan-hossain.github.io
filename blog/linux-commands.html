@@ -14,6 +14,7 @@
     />
     <link rel="stylesheet" href="../style.css" />
     <link rel="stylesheet" href="blog.css" />
+    <link rel="stylesheet" href="linux.css" />
   </head>
   <body>
     <article class="container post">
@@ -34,6 +35,22 @@
         <code>cp</code>, <code>mv</code>, <code>grep</code>,
         <code>find</code>, <code>chmod</code> and <code>sudo</code>.
       </p>
+
+      <div class="term">
+        <div class="term-bar"><i></i><i></i><i></i><span>user@server: ~</span></div>
+        <div class="term-body">
+          <p class="t-line" style="--d: 0.5s"><span class="t-prompt">$</span> <span class="t-cmd" style="--n: 6">whoami</span></p>
+          <p class="t-out" style="--d: 1.5s">user</p>
+          <p class="t-line" style="--d: 2s"><span class="t-prompt">$</span> <span class="t-cmd" style="--n: 3">pwd</span></p>
+          <p class="t-out" style="--d: 2.9s">/home/user</p>
+          <p class="t-line" style="--d: 3.4s"><span class="t-prompt">$</span> <span class="t-cmd" style="--n: 2">ls</span></p>
+          <p class="t-out" style="--d: 4.2s"><span class="t-dir">app</span>  <span class="t-dir">logs</span>  notes.txt</p>
+          <p class="t-line" style="--d: 4.7s"><span class="t-prompt">$</span> <span class="t-cmd" style="--n: 7">df -h /</span></p>
+          <p class="t-out" style="--d: 5.7s">Filesystem  Size  Used  Avail  Use%
+/dev/sda1    40G   12G    28G   30%</p>
+          <p class="t-line" style="--d: 6.3s"><span class="t-prompt">$</span> <span class="t-caret"></span></p>
+        </div>
+      </div>
 
       <h2>Cheat Sheet</h2>
       <div class="cheatsheet">
@@ -160,6 +177,11 @@
       <pre><code>pwd
 /home/rezwan</code></pre>
 
+      <div class="mini lt">
+        <p><span class="g">$</span> <span class="lt-cmd" style="--n: 3">pwd</span></p>
+        <p class="lt-out"><span class="b">/home/user</span>   <span class="a">← you are here</span></p>
+      </div>
+
       <h3 id="ls">2. ls</h3>
       <p>
         Lists files and folders. Add <code>-l</code> for details,
@@ -170,6 +192,12 @@
       <pre><code>ls
 ls -lah</code></pre>
 
+      <div class="mini">
+        <p class="m">$ ls -a</p>
+        <span class="pop ico dir" style="--i: 0">app/</span><span class="pop ico dir" style="--i: 1">logs/</span><span class="pop ico" style="--i: 2">notes.txt</span><span class="pop ico" style="--i: 3">server.js</span><span class="pop ico hidden" style="--i: 4">.env</span>
+        <p class="mini-cap">Folders in blue. -a also shows hidden files that start with a dot.</p>
+      </div>
+
       <h3 id="cd">3. cd</h3>
       <p>Changes the folder you're in.</p>
       <p>Example:</p>
@@ -178,16 +206,43 @@ cd ..           # go up one folder
 cd ~            # go to your home folder
 cd -            # go back to the last folder</code></pre>
 
+      <div class="demo tree">
+        <div class="tree-cmds">
+          <p><code>$ cd /</code><small>pwd → /</small></p>
+          <p><code>$ cd /home</code><small>pwd → /home</small></p>
+          <p><code>$ cd user</code><small>pwd → /home/user</small></p>
+          <p><code>$ cd ..</code><small>pwd → /home (up one)</small></p>
+        </div>
+        <ul class="tree-list">
+          <li class="t-root">/</li>
+          <li class="t-home">└─ home/</li>
+          <li class="t-user">   └─ user/</li>
+          <li>└─ var/</li>
+        </ul>
+      </div>
+
       <h3 id="mkdir">4. mkdir</h3>
       <p>Creates a new folder. Use <code>-p</code> to create folders inside folders in one go.</p>
       <p>Example:</p>
       <pre><code>mkdir test
 mkdir -p projects/app/logs</code></pre>
 
+      <div class="mini">
+        <p class="m">$ mkdir -p projects/app/logs</p>
+        <span class="pop row" style="--i: 0"><span class="ico dir">projects/</span></span>
+        <span class="pop row" style="--i: 1">   └─ <span class="ico dir">app/</span></span>
+        <span class="pop row" style="--i: 2">         └─ <span class="ico dir">logs/</span></span>
+      </div>
+
       <h3 id="touch">5. touch</h3>
       <p>Creates an empty file. If the file already exists, it just updates its time.</p>
       <p>Example:</p>
       <pre><code>touch file.txt</code></pre>
+
+      <div class="mini">
+        <p class="m">$ touch file.txt</p>
+        <span class="pop ico" style="--i: 1">file.txt</span> <span class="pop m" style="--i: 2">0 bytes, empty</span>
+      </div>
 
       <h3 id="cp">6. cp</h3>
       <p>Copies files. Use <code>-r</code> to copy a whole folder.</p>
@@ -195,11 +250,29 @@ mkdir -p projects/app/logs</code></pre>
       <pre><code>cp file.txt backup.txt
 cp -r website website-backup</code></pre>
 
+      <div class="mini">
+        <div class="lanebox">
+          <div class="end">file.txt<small>original</small></div>
+          <div class="track"><span class="mover" style="--d: 0s">copy →</span></div>
+          <div class="end"><span class="land" style="--d: 0s">file.txt</span><small>backup.txt</small></div>
+        </div>
+        <p class="mini-cap">The original stays. A second file appears.</p>
+      </div>
+
       <h3 id="mv">7. mv</h3>
       <p>Moves a file to another place. It's also how you rename a file in Linux.</p>
       <p>Example:</p>
       <pre><code>mv backup.txt newfile.txt        # rename
 mv newfile.txt /tmp/             # move</code></pre>
+
+      <div class="mini">
+        <div class="lanebox">
+          <div class="end"><span class="leave">file.txt</span><small>here</small></div>
+          <div class="track"><span class="mover" style="--d: 0s">moving →</span></div>
+          <div class="end"><span class="land">file.txt</span><small>/tmp</small></div>
+        </div>
+        <p class="mini-cap">Only one file exists at the end. mv to a new name in the same folder = rename.</p>
+      </div>
 
       <h3 id="rm">8. rm</h3>
       <p>
@@ -210,12 +283,26 @@ mv newfile.txt /tmp/             # move</code></pre>
       <pre><code>rm newfile.txt
 rm -r old-folder</code></pre>
 
+      <div class="demo shred">
+        <code class="shred-cmd">$ rm notes.txt</code>
+        <div class="file">notes.txt</div>
+        <span class="dust"></span><span class="dust"></span><span class="dust"></span>
+        <span class="dust"></span><span class="dust"></span><span class="dust"></span>
+        <p class="gone">gone. no recycle bin.</p>
+      </div>
+
       <h2>Reading and Editing Files</h2>
 
       <h3 id="cat">9. cat</h3>
       <p>Prints the whole file in the terminal. Best for short files.</p>
       <p>Example:</p>
       <pre><code>cat file.txt</code></pre>
+
+      <div class="mini lt">
+        <p><span class="g">$</span> <span class="lt-cmd" style="--n: 13">cat hello.txt</span></p>
+        <p class="lt-out">Hello from Linux!</p>
+        <p class="lt-out">This is line two.</p>
+      </div>
 
       <h3 id="less">10. less</h3>
       <p>
@@ -225,6 +312,15 @@ rm -r old-folder</code></pre>
       <p>Example:</p>
       <pre><code>less /var/log/syslog</code></pre>
 
+      <div class="mini">
+        <div class="pager"><div class="pager-in">
+          <p>Nov 17 10:01 server started</p><p>Nov 17 10:02 GET /</p><p>Nov 17 10:02 GET /about</p>
+          <p>Nov 17 10:03 GET /api/users</p><p>Nov 17 10:04 POST /login</p><p>Nov 17 10:05 GET /cart</p>
+          <p class="r">Nov 17 10:06 error: db timeout</p><p>Nov 17 10:07 GET /</p><p>Nov 17 10:08 GET /logo.png</p>
+        </div></div>
+        <div class="pager-bar"><span>space = next page</span><span>q = quit</span></div>
+      </div>
+
       <h3 id="nano">11. nano</h3>
       <p>
         A simple text editor, good for beginners. Press
@@ -232,6 +328,15 @@ rm -r old-folder</code></pre>
       </p>
       <p>Example:</p>
       <pre><code>nano /etc/hosts</code></pre>
+
+      <div class="mini lt">
+        <div class="editor">
+          <p class="ed-title">GNU nano   /etc/hosts</p>
+          <div class="ed-body"><p>127.0.0.1  localhost</p><p><span class="lt-cmd" style="--n: 25">192.168.1.50   test.local</span></p></div>
+          <p class="ed-status lt-out a">[ Wrote 2 lines ]</p>
+          <p class="ed-keys"><span><b>^O</b> Save</span><span><b>^X</b> Exit</span></p>
+        </div>
+      </div>
 
       <h3 id="vim">12. vim</h3>
       <p>
@@ -242,6 +347,16 @@ rm -r old-folder</code></pre>
       </p>
       <p>Example:</p>
       <pre><code>vim config.yml</code></pre>
+
+      <div class="mini">
+        <div class="swap s4" style="--h: 48px">
+          <div style="--i: 0"><p><span class="m">-- NORMAL --</span></p><p>press <b class="a">i</b> to start typing</p></div>
+          <div style="--i: 1"><p><span class="g">-- INSERT --</span></p><p>hello world<span class="t-caret"></span></p></div>
+          <div style="--i: 2"><p><span class="m">-- NORMAL --</span></p><p>pressed <b class="a">Esc</b></p></div>
+          <div style="--i: 3"><p><span class="a">:wq</span></p><p class="g">"config.yml" written ✓</p></div>
+        </div>
+        <p class="mini-cap">The mode at the bottom tells you what your keys do.</p>
+      </div>
 
       <h2>Searching</h2>
 
@@ -255,12 +370,38 @@ rm -r old-folder</code></pre>
       <pre><code>grep "error" /var/log/syslog
 grep -rin "password" /etc/</code></pre>
 
+      <div class="mini">
+        <span class="scan-tag">grep "error"</span>
+        <div class="scan">
+          <p style="--i: 0">Nov 17 server started</p>
+          <p style="--i: 1">Nov 17 GET / 200</p>
+          <p class="hit" style="--i: 2">Nov 17 error: disk full</p>
+          <p style="--i: 3">Nov 17 GET /api 200</p>
+          <p class="hit" style="--i: 4">Nov 17 error: db timeout</p>
+          <p style="--i: 5">Nov 17 user logged in</p>
+        </div>
+        <p class="mini-cap">Every line is checked. Only matching lines are printed.</p>
+      </div>
+
       <h3 id="find">14. find</h3>
       <p>Finds files and folders by name, type, size or date.</p>
       <p>Example:</p>
       <pre><code>find /home -name "*.txt"
 find /var/log -size +100M
 find . -type d -name "node_modules"</code></pre>
+
+      <div class="mini">
+        <span class="scan-tag">-name "*.txt"</span>
+        <div class="scan">
+          <p style="--i: 0">/home/user/</p>
+          <p class="hit" style="--i: 1">├─ notes.txt</p>
+          <p style="--i: 2">├─ photo.jpg</p>
+          <p style="--i: 3">├─ app/</p>
+          <p style="--i: 4">│  ├─ server.js</p>
+          <p class="hit" style="--i: 5">│  └─ todo.txt</p>
+        </div>
+        <p class="mini-cap">find walks through every folder and prints the matches.</p>
+      </div>
 
       <h2>Permissions and Packages</h2>
 
@@ -273,11 +414,41 @@ find . -type d -name "node_modules"</code></pre>
       <pre><code>chmod 755 script.sh
 chmod +x script.sh      # make it runnable</code></pre>
 
+      <div class="perm">
+        <div class="perm-cmd">chmod <b>7</b><b>5</b><b>5</b> script.sh</div>
+        <div class="perm-groups">
+          <div class="pg">
+            <p class="pg-name">owner</p>
+            <div class="bits"><span class="on">r<small>4</small></span><span class="on">w<small>2</small></span><span class="on">x<small>1</small></span></div>
+            <p class="pg-sum">4+2+1 = <b>7</b></p>
+          </div>
+          <div class="pg">
+            <p class="pg-name">group</p>
+            <div class="bits"><span class="on">r<small>4</small></span><span class="off">w<small>0</small></span><span class="on">x<small>1</small></span></div>
+            <p class="pg-sum">4+0+1 = <b>5</b></p>
+          </div>
+          <div class="pg">
+            <p class="pg-name">others</p>
+            <div class="bits"><span class="on">r<small>4</small></span><span class="off">w<small>0</small></span><span class="on">x<small>1</small></span></div>
+            <p class="pg-sum">4+0+1 = <b>5</b></p>
+          </div>
+        </div>
+        <p class="perm-ls">ls -l shows it as <code>-rwxr-xr-x</code></p>
+      </div>
+
       <h3 id="chown">16. chown</h3>
       <p>Changes the owner of a file. Use <code>-R</code> to change a whole folder.</p>
       <p>Example:</p>
       <pre><code>sudo chown rezwan:rezwan file.txt
 sudo chown -R www-data:www-data /var/www</code></pre>
+
+      <div class="mini">
+        <div class="swap s2" style="--h: 44px">
+          <div style="--i: 0"><p>file.txt</p><p>owner: <span class="r">root</span></p></div>
+          <div style="--i: 1"><p>file.txt</p><p>owner: <span class="g">rezwan</span> ✓</p></div>
+        </div>
+        <p class="mini-cap">Same file, new owner.</p>
+      </div>
 
       <h3 id="sudo">17. sudo</h3>
       <p>
@@ -287,6 +458,13 @@ sudo chown -R www-data:www-data /var/www</code></pre>
       </p>
       <p>Example:</p>
       <pre><code>sudo apt update</code></pre>
+
+      <div class="mini">
+        <div class="swap s2" style="--h: 44px">
+          <div style="--i: 0"><p><span class="g">$</span> apt update</p><p class="r">✗ Permission denied (are you root?)</p></div>
+          <div style="--i: 1"><p><span class="g">$</span> <span class="a">sudo</span> apt update</p><p class="g">[sudo] password: •••••  ✓ OK</p></div>
+        </div>
+      </div>
 
       <h3 id="apt">18. apt</h3>
       <p>
@@ -299,6 +477,11 @@ sudo apt install nginx     # install
 sudo apt upgrade           # update everything
 sudo apt remove nginx      # uninstall</code></pre>
 
+      <div class="mini">
+        <p class="m">$ sudo apt install nginx</p>
+        <div class="gr"><span>nginx</span><div class="gbar"><i style="--w: 100%"></i></div><span class="land a" style="animation-duration: 5s">✓ done</span></div>
+      </div>
+
       <h2>Processes</h2>
 
       <h3 id="ps">19. ps</h3>
@@ -306,6 +489,17 @@ sudo apt remove nginx      # uninstall</code></pre>
       <p>Example:</p>
       <pre><code>ps aux
 ps aux | grep nginx</code></pre>
+
+      <div class="mini">
+        <span class="scan-tag">| grep nginx</span>
+        <div class="scan">
+          <p style="--i: 0">USER      PID  %CPU  COMMAND</p>
+          <p style="--i: 1">root        1   0.0  /sbin/init</p>
+          <p class="hit" style="--i: 2">www-data  812   0.4  nginx: worker</p>
+          <p style="--i: 3">user     1234  12.0  node server.js</p>
+          <p class="hit" style="--i: 4">www-data  813   0.3  nginx: worker</p>
+        </div>
+      </div>
 
       <h3 id="top">20. top</h3>
       <p>
@@ -316,6 +510,14 @@ ps aux | grep nginx</code></pre>
       <p>Example:</p>
       <pre><code>top</code></pre>
 
+      <div class="demo">
+        <div class="top-row"><span>nginx</span><div class="top-bar"><i style="--lo: 8%; --hi: 22%; --t: 0.9s"></i></div></div>
+        <div class="top-row hot"><span>node</span><div class="top-bar"><i style="--lo: 35%; --hi: 95%; --t: 1.3s"></i></div></div>
+        <div class="top-row"><span>mysql</span><div class="top-bar"><i style="--lo: 15%; --hi: 45%; --t: 1.7s"></i></div></div>
+        <div class="top-row"><span>sshd</span><div class="top-bar"><i style="--lo: 2%; --hi: 6%; --t: 2.2s"></i></div></div>
+        <p class="demo-caption">The red one is eating your CPU. Note its PID, then decide if it needs a <a href="#kill">kill</a>.</p>
+      </div>
+
       <h3 id="kill">21. kill</h3>
       <p>
         Stops a process using its PID (the number from <code>ps</code> or
@@ -325,6 +527,15 @@ ps aux | grep nginx</code></pre>
       <pre><code>kill 1234
 kill -9 1234</code></pre>
 
+      <div class="mini">
+        <div class="lanebox">
+          <div class="end">you<small>kill 1234</small></div>
+          <div class="track"><span class="mover bad" style="--d: 0s">SIGTERM →</span></div>
+          <div class="end"><span class="die">node</span><small>PID 1234</small></div>
+        </div>
+        <p class="mini-cap">The process gets the signal and stops.</p>
+      </div>
+
       <h2>Disk and Network</h2>
 
       <h3 id="df">22. df</h3>
@@ -332,17 +543,38 @@ kill -9 1234</code></pre>
       <p>Example:</p>
       <pre><code>df -h</code></pre>
 
+      <div class="demo">
+        <div class="disk-row fill"><span>/</span><div class="disk-bar"><i style="width: 30%"></i></div><b>96% !</b></div>
+        <div class="disk-row"><span>/home</span><div class="disk-bar"><i style="width: 42%"></i></div><b>42%</b></div>
+        <div class="disk-row"><span>/boot</span><div class="disk-bar"><i style="width: 18%"></i></div><b>18%</b></div>
+        <p class="demo-caption">When a disk hits 100%, apps crash and logs stop writing. Use <a href="#du">du</a> to find what filled it.</p>
+      </div>
+
       <h3 id="du">23. du</h3>
       <p>Shows how much space a folder uses. Great for finding what filled up the disk.</p>
       <p>Example:</p>
       <pre><code>du -sh /home
 du -sh /var/* | sort -h</code></pre>
 
+      <div class="mini">
+        <div class="gr"><span>logs/</span><div class="gbar"><i style="--w: 100%; --i: 0; --c: var(--red);"></i></div><span class="m">8.2G</span></div>
+        <div class="gr"><span>cache/</span><div class="gbar"><i style="--w: 36%; --i: 1; --c: var(--amber);"></i></div><span class="m">3.0G</span></div>
+        <div class="gr"><span>www/</span><div class="gbar"><i style="--w: 12%; --i: 2;"></i></div><span class="m">1.0G</span></div>
+        <div class="gr"><span>home/</span><div class="gbar"><i style="--w: 5%; --i: 3;"></i></div><span class="m">400M</span></div>
+        <p class="mini-cap">Biggest first: the logs folder is the problem.</p>
+      </div>
+
       <h3 id="ip">24. ip</h3>
       <p>Shows network info like IP addresses and routes. It replaces the older <code>ifconfig</code>.</p>
       <p>Example:</p>
       <pre><code>ip addr      # your IP addresses
 ip route     # your gateway and routes</code></pre>
+
+      <div class="mini">
+        <p class="cols"><span class="led" style="--d: 0s"></span>lo     <span class="b">127.0.0.1</span>   <span class="m">(this machine)</span></p>
+        <p class="cols"><span class="led" style="--d: 0.4s"></span>eth0   <span class="b">192.0.2.10</span>  <span class="m">(your network)</span></p>
+        <p class="m cols">default via 192.0.2.1  ← your gateway</p>
+      </div>
 
       <h2>Services</h2>
 
@@ -357,6 +589,15 @@ sudo systemctl start nginx
 sudo systemctl stop nginx
 sudo systemctl restart nginx
 sudo systemctl enable nginx</code></pre>
+
+      <div class="mini">
+        <div class="swap s3" style="--h: 44px">
+          <div style="--i: 0"><p><span class="dot"></span>nginx.service</p><p class="m">inactive (dead)</p></div>
+          <div style="--i: 1"><p><span class="dot a"></span>nginx.service</p><p class="a">activating…</p></div>
+          <div style="--i: 2"><p><span class="dot g"></span>nginx.service</p><p class="g">active (running)</p></div>
+        </div>
+        <p class="mini-cap">$ sudo systemctl start nginx</p>
+      </div>
 
       <h2>DevOps Essentials</h2>
       <p>
@@ -374,6 +615,23 @@ sudo systemctl enable nginx</code></pre>
 ps aux | grep nginx                 # find a process
 ls -lt | head -5                    # 5 newest files</code></pre>
 
+      <div class="pipe">
+        <div class="pipe-row">
+          <div class="stage">cat<br />app.log</div>
+          <div class="belt">
+            <div class="filter"><span>grep "error"</span></div>
+            <span class="chip info" style="--d: 0s">INFO</span>
+            <span class="chip error" style="--d: 1s">ERROR</span>
+            <span class="chip info" style="--d: 2s">INFO</span>
+            <span class="chip error" style="--d: 3s">ERROR</span>
+            <span class="chip error" style="--d: 4s">ERROR</span>
+            <span class="chip info" style="--d: 5s">INFO</span>
+          </div>
+          <div class="stage">wc -l<b>3</b></div>
+        </div>
+        <p class="pipe-caption">Every line goes in. grep throws away the INFO lines, wc -l counts what's left.</p>
+      </div>
+
       <h3 id="ssh">26. ssh</h3>
       <p>
         Connects you to a remote server's terminal. Most people use SSH keys
@@ -385,12 +643,30 @@ ssh -i key.pem ubuntu@192.0.2.10     # log in with a key file
 ssh-keygen -t ed25519                # create your own key
 ssh-copy-id user@192.0.2.10          # copy your key to the server</code></pre>
 
+      <div class="mini">
+        <div class="lanebox">
+          <div class="end">💻<small>your laptop</small></div>
+          <div class="track"><span class="mover" style="--d: 0s">🔒 encrypted</span></div>
+          <div class="end"><span class="land g">user@server:~$</span><small>server</small></div>
+        </div>
+        <p class="mini-cap">Everything you type goes through an encrypted tunnel.</p>
+      </div>
+
       <h3 id="scp">27. scp</h3>
       <p>Copies files between your computer and a server over SSH. Use <code>-r</code> for folders.</p>
       <p>Example:</p>
       <pre><code>scp app.zip user@192.0.2.10:/home/user/     # upload
 scp user@192.0.2.10:/var/log/app.log .       # download
 scp -r dist user@192.0.2.10:/var/www/        # upload a folder</code></pre>
+
+      <div class="mini">
+        <div class="lanebox">
+          <div class="end">app.zip<small>laptop</small></div>
+          <div class="track"><span class="mover" style="--d: 0s">app.zip →</span></div>
+          <div class="end"><span class="land">app.zip ✓</span><small>server</small></div>
+        </div>
+        <p class="mini-cap">Upload over SSH. Swap the two paths to download.</p>
+      </div>
 
       <h3 id="rsync">28. rsync</h3>
       <p>
@@ -400,6 +676,15 @@ scp -r dist user@192.0.2.10:/var/www/        # upload a folder</code></pre>
       <p>Example:</p>
       <pre><code>rsync -avz dist/ user@192.0.2.10:/var/www/site/
 rsync -avz --delete dist/ user@192.0.2.10:/var/www/site/   # also remove deleted files</code></pre>
+
+      <div class="mini">
+        <div class="lanebox">
+          <div class="end"><p>index.html</p><p class="a">style.css ●</p><p>logo.png</p></div>
+          <div class="track"><span class="mover" style="--d: 0s">style.css →</span></div>
+          <div class="end"><p class="m">index.html</p><p class="land a">style.css ✓</p><p class="m">logo.png</p></div>
+        </div>
+        <p class="mini-cap">Only the changed file (●) is sent. The rest are skipped.</p>
+      </div>
 
       <h3 id="curl">29. curl</h3>
       <p>
@@ -413,6 +698,14 @@ curl -O https://example.com/file.zip         # download a file
 curl -X POST -H "Content-Type: application/json" \
      -d '{"name":"test"}' https://api.example.com/users</code></pre>
 
+      <div class="mini">
+        <div class="lanebox">
+          <div class="end">curl<small>terminal</small></div>
+          <div class="track"><span class="mover" style="--d: 0s">GET /health →</span><span class="mover back" style="--d: 2s">← 200 OK</span></div>
+          <div class="end">API<small>example.com</small></div>
+        </div>
+      </div>
+
       <h3 id="tar">30. tar</h3>
       <p>
         Packs many files into one archive, or unpacks it. <code>c</code> =
@@ -424,6 +717,16 @@ curl -X POST -H "Content-Type: application/json" \
 tar -xzf backup.tar.gz                # extract
 tar -tzf backup.tar.gz                # list what's inside</code></pre>
 
+      <div class="mini">
+        <p class="m">$ tar -czf backup.tar.gz www/</p>
+        <div class="tarbox">
+          <span class="tf" style="--x: 0%">index.html</span>
+          <span class="tf" style="--x: 22%">style.css</span>
+          <span class="tf" style="--x: 42%">logo.png</span>
+          <span class="archive">backup.tar.gz</span>
+        </div>
+      </div>
+
       <h3 id="tail">31. tail</h3>
       <p>
         Shows the last lines of a file. With <code>-f</code> it keeps
@@ -433,6 +736,24 @@ tar -tzf backup.tar.gz                # list what's inside</code></pre>
       <p>Example:</p>
       <pre><code>tail -n 50 app.log
 tail -f /var/log/nginx/access.log</code></pre>
+
+      <div class="demo stream">
+        <span class="live">● LIVE</span>
+        <ul class="stream-lines">
+            <li>[INFO]  GET /            200  12ms</li>
+            <li>[INFO]  GET /api/users   200  48ms</li>
+            <li class="warn">[WARN]  slow query      1.2s</li>
+            <li>[INFO]  POST /login     302  31ms</li>
+            <li class="err">[ERROR] db timeout      /api/cart</li>
+            <li>[INFO]  GET /logo.png   200   2ms</li>
+            <li>[INFO]  GET /            200  12ms</li>
+            <li>[INFO]  GET /api/users   200  48ms</li>
+            <li class="warn">[WARN]  slow query      1.2s</li>
+            <li>[INFO]  POST /login     302  31ms</li>
+            <li class="err">[ERROR] db timeout      /api/cart</li>
+            <li>[INFO]  GET /logo.png   200   2ms</li>
+        </ul>
+      </div>
 
       <h3 id="journalctl">32. journalctl</h3>
       <p>
@@ -444,6 +765,19 @@ tail -f /var/log/nginx/access.log</code></pre>
 journalctl -u nginx -f                # watch live
 journalctl -u nginx --since "1 hour ago"</code></pre>
 
+      <div class="mini">
+        <span class="scan-tag">-u nginx</span>
+        <div class="scan">
+          <p class="hit" style="--i: 0">nginx: started</p>
+          <p style="--i: 1">sshd: login from 192.0.2.5</p>
+          <p class="hit" style="--i: 2">nginx: GET / 200</p>
+          <p style="--i: 3">cron: backup.sh ran</p>
+          <p class="hit" style="--i: 4">nginx: error: upstream closed</p>
+          <p style="--i: 5">sshd: logout</p>
+        </div>
+        <p class="mini-cap">Logs from every service, filtered down to just nginx.</p>
+      </div>
+
       <h3 id="ss">33. ss</h3>
       <p>
         Shows which ports are open and which program is using them. Useful
@@ -453,10 +787,29 @@ journalctl -u nginx --since "1 hour ago"</code></pre>
       <pre><code>sudo ss -tulpn
 sudo ss -tulpn | grep :80</code></pre>
 
+      <div class="mini">
+        <p class="cols"><span class="led"></span>:22     sshd     LISTEN</p>
+        <p class="cols"><span class="led" style="--d: 0.3s"></span>:80     nginx    LISTEN</p>
+        <p class="cols"><span class="led" style="--d: 0.6s"></span>:443    nginx    LISTEN</p>
+        <p class="cols"><span class="led r"></span>:3000   node     <span class="r">already in use!</span></p>
+      </div>
+
       <h3 id="ping">34. ping</h3>
       <p>Checks if a server is reachable and how fast it answers. Use <code>-c</code> to stop after a few tries.</p>
       <p>Example:</p>
       <pre><code>ping -c 4 google.com</code></pre>
+
+      <div class="mini">
+        <div class="pingbox">
+          <div class="radar"><span class="ring"></span><span class="ring" style="--d: 0.7s"></span><span class="ring" style="--d: 1.4s"></span></div>
+          <div>
+            <p class="pop row" style="--i: 0">64 bytes from google.com: time=<span class="g">12 ms</span></p>
+            <p class="pop row" style="--i: 2">64 bytes from google.com: time=<span class="g">11 ms</span></p>
+            <p class="pop row" style="--i: 4">64 bytes from google.com: time=<span class="g">13 ms</span></p>
+            <p class="pop row" style="--i: 6">4 sent, 4 received, <span class="g">0% loss</span></p>
+          </div>
+        </div>
+      </div>
 
       <h3 id="dig">35. dig</h3>
       <p>
@@ -467,6 +820,13 @@ sudo ss -tulpn | grep :80</code></pre>
       <p>Example:</p>
       <pre><code>dig +short example.com
 dig example.com MX</code></pre>
+
+      <div class="mini">
+        <div class="swap s2" style="--h: 44px">
+          <div style="--i: 0"><p class="m">question</p><p>example.com  A  <span class="a">?</span></p></div>
+          <div style="--i: 1"><p class="m">answer</p><p>example.com  A  <span class="g">93.184.x.x</span></p></div>
+        </div>
+      </div>
 
       <h3 id="crontab">36. crontab</h3>
       <p>
@@ -480,6 +840,17 @@ crontab -l        # list them
 # run backup.sh every day at 2:00 AM
 0 2 * * * /home/user/backup.sh</code></pre>
 
+      <div class="demo">
+        <div class="cron">
+          <div class="clock"><span class="hand hour"></span><span class="hand min"></span></div>
+          <div class="cron-job">
+            <code>0 2 * * *</code>
+            <p>waits for 2:00…</p>
+            <p class="cron-ran">✓ backup.sh ran</p>
+          </div>
+        </div>
+      </div>
+
       <h3 id="useradd">37. useradd</h3>
       <p>
         Creates a new user. Use <code>usermod</code> to add a user to a group,
@@ -492,6 +863,14 @@ sudo passwd deploy                    # set password
 sudo usermod -aG sudo deploy          # give admin rights
 sudo usermod -aG docker deploy        # allow using docker</code></pre>
 
+      <div class="mini">
+        <span class="pop ico" style="--i: 0">👤 deploy</span>
+        <span class="pop ico dir" style="--i: 2">/home/deploy</span>
+        <span class="pop ico" style="--i: 4"><span class="a">+ sudo</span></span>
+        <span class="pop ico" style="--i: 5"><span class="b">+ docker</span></span>
+        <p class="mini-cap">New user, a home folder, then extra groups with usermod -aG.</p>
+      </div>
+
       <h3 id="free">38. free</h3>
       <p>
         Shows how much memory (RAM) is used and free. <code>uptime</code> is
@@ -501,6 +880,13 @@ sudo usermod -aG docker deploy        # allow using docker</code></pre>
       <p>Example:</p>
       <pre><code>free -h
 uptime</code></pre>
+
+      <div class="mini">
+        <div class="gr"><span>used</span><div class="gbar"><i style="--w: 45%; --i: 0; --c: var(--green);"></i></div><span class="m">3.6G</span></div>
+        <div class="gr"><span>cache</span><div class="gbar"><i style="--w: 30%; --i: 1; --c: var(--blue);"></i></div><span class="m">2.4G</span></div>
+        <div class="gr"><span>swap</span><div class="gbar"><i style="--w: 6%; --i: 2; --c: var(--amber);"></i></div><span class="m">0.2G</span></div>
+        <p class="mini-cap">Cache is fine: Linux uses spare RAM for it and gives it back when apps need it.</p>
+      </div>
 
       <h3 id="export">39. export</h3>
       <p>
@@ -513,6 +899,13 @@ uptime</code></pre>
 echo $NODE_ENV           # show one variable
 env                      # show all variables</code></pre>
 
+      <div class="mini lt">
+        <p><span class="g">$</span> <span class="lt-cmd" style="--n: 26">export NODE_ENV=production</span></p>
+        <p class="lt-out"><span class="m">(saved for this session)</span></p>
+        <p><span class="g">$</span> <span class="lt-cmd c2" style="--n: 14">echo $NODE_ENV</span></p>
+        <p class="lt-out c2"><span class="g">production</span></p>
+      </div>
+
       <h3 id="ln">40. ln</h3>
       <p>
         Creates a link to another file or folder. With <code>-s</code> it
@@ -521,6 +914,15 @@ env                      # show all variables</code></pre>
       </p>
       <p>Example:</p>
       <pre><code>sudo ln -s /etc/nginx/sites-available/mysite /etc/nginx/sites-enabled/</code></pre>
+
+      <div class="mini">
+        <div class="lnbox">
+          <div class="end">mysite<small>sites-enabled/</small></div>
+          <div class="arrow"></div>
+          <div class="end ln-target">mysite<small>sites-available/</small></div>
+        </div>
+        <p class="mini-cap">The link is just a pointer. Edit the real file, and the link sees the change.</p>
+      </div>
 
       <h2>What to Learn First</h2>
       <table>
