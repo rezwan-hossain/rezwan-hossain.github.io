@@ -383,61 +383,487 @@
 }
 
 
-/* ---------- one waiter vs many waiters ---------- */
+/* ==========================================================
+   "Why NGINX is so fast": four diagrams
+   ========================================================== */
 
-.tables {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 8px;
-  margin-bottom: 20px;
+/* ---------- 1. architecture: master, workers, event loops ---------- */
+
+.arch-row {
+  display: flex;
+  align-items: center;
 }
 
-.table {
-  padding: 8px 0;
-  border: 1px solid var(--line);
-  color: #666;
-  font-size: 12px;
-  line-height: 1.3;
+.arch-box {
+  flex: 3;
+  padding: 10px;
+  border: 1px dashed var(--blue, #7fb2e6);
+  border-radius: 10px;
   text-align: center;
 }
 
-.table small {
+.arch-name {
+  margin-bottom: 8px;
+  color: #7fb2e6;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* the master gives orders and reloads config; it pulses every 6s */
+.master {
+  padding: 6px;
+  border: 1px solid #b48cf0;
+  background: rgba(180, 140, 240, 0.08);
+  color: #c9a8f7;
+  font-size: 12px;
+  animation: master 6s infinite;
+}
+
+.master small {
   display: block;
+  color: var(--muted);
   font-size: 10px;
 }
 
-/* old way: every table stuck waiting */
-.tables-old .table {
-  border-style: dashed;
+/* lines from the master down to each worker, with a signal dropping down */
+.links {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  height: 18px;
 }
 
-.tables-old small {
+.links span {
+  position: relative;
+  justify-self: center;
+  width: 2px;
+  background: #4a3f5e;
+}
+
+.links span::after {
+  content: "";
+  position: absolute;
+  left: -2px;
+  top: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #c9a8f7;
+  opacity: 0;
+  animation: signal 6s infinite;
+}
+
+.workers {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.worker {
+  padding: 6px 4px;
+  border: 1px solid #5f9e5f;
+  background: rgba(127, 191, 127, 0.06);
+  color: var(--good);
+  font-size: 11px;
+}
+
+/* the event loop: a ring that never stops turning */
+.loop {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 5px;
+  vertical-align: -2px;
+  border: 2px solid var(--warn);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* small lights = connections being served, each at its own moment */
+.conns {
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+  margin-top: 5px;
+}
+
+.conns i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #333;
+  animation: conn 1.6s infinite;
+}
+
+.conns i:nth-child(2) { animation-delay: 0.3s; }
+.conns i:nth-child(3) { animation-delay: 0.9s; }
+.conns i:nth-child(4) { animation-delay: 0.5s; }
+.conns i:nth-child(5) { animation-delay: 1.2s; }
+.worker:nth-child(2) .conns i { animation-duration: 1.3s; }
+.worker:nth-child(3) .conns i { animation-duration: 1.9s; }
+
+.shm {
+  margin-top: 8px;
+  padding: 5px;
+  border: 1px solid #3f6b5a;
+  color: #8fcfb5;
+  font-size: 10px;
+}
+
+@keyframes master {
+  0%, 8% { box-shadow: 0 0 14px rgba(201, 168, 247, 0.6); }
+  14%, 100% { box-shadow: none; }
+}
+
+@keyframes signal {
+  0% { top: 0; opacity: 1; }
+  10% { top: 12px; opacity: 1; }
+  12%, 100% { top: 12px; opacity: 0; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes conn {
+  0%, 20% { background: var(--good); box-shadow: 0 0 5px var(--good); }
+  35%, 100% { background: #333; box-shadow: none; }
+}
+
+
+/* ---------- 2. restaurant: blocked waiters vs one smart waiter ---------- */
+
+.rest {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.rest-col {
+  padding: 10px;
+  border: 1px solid var(--line);
+}
+
+.rest-old {
+  border-color: #5a3434;
+  background: rgba(224, 108, 108, 0.04);
+}
+
+.rest-new {
+  border-color: #3a5a3a;
+  background: rgba(127, 191, 127, 0.04);
+}
+
+.post .rest-head {
+  margin: 0 0 10px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.rest-old .rest-head { color: var(--bad); }
+.rest-new .rest-head { color: var(--good); }
+
+.tbl,
+.waiter {
+  height: 34px;
+  padding: 0 6px;
+  border: 1px solid #5a4a2c;
+  background: rgba(217, 167, 90, 0.07);
   color: var(--warn);
-  opacity: 0.6;
+  font-size: 11px;
+  line-height: 1.25;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
 }
 
-/* nginx: one table lights up at a time, left to right */
-.tables-nginx .table {
-  animation: serve 3s infinite;
+.tbl small,
+.waiter small {
+  font-size: 9px;
 }
 
-.tables-nginx .table:nth-child(2) { animation-delay: 0.5s; }
-.tables-nginx .table:nth-child(3) { animation-delay: 1s; }
-.tables-nginx .table:nth-child(4) { animation-delay: 1.5s; }
-.tables-nginx .table:nth-child(5) { animation-delay: 2s; }
-.tables-nginx .table:nth-child(6) { animation-delay: 2.5s; }
+/* left side: every table has its own waiter, stuck */
+.r-row {
+  display: grid;
+  grid-template-columns: 1fr 16px 1fr;
+  align-items: center;
+  margin-bottom: 6px;
+  color: var(--bad);
+}
 
-@keyframes serve {
-  0%, 15% {
-    border-color: var(--bright);
-    color: var(--bright);
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.25);
-  }
-  17%, 100% {
-    border-color: var(--line);
-    color: #666;
-    box-shadow: none;
-  }
+.waiter.blocked {
+  border-color: var(--bad);
+  background: rgba(224, 108, 108, 0.1);
+  color: var(--bad);
+}
+
+/* "just staring..." with dots that keep counting */
+.stare::after {
+  content: "...";
+  display: inline-block;
+  width: 0;
+  overflow: hidden;
+  vertical-align: bottom;
+  animation: dots 1.5s steps(4) infinite;
+}
+
+/* right side: tables raise a hand, one waiter goes to them */
+.smart-area {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.smart-tables {
+  display: grid;
+  gap: 6px;
+}
+
+.smart-tables .tbl {
+  animation: hand 5s infinite;
+  animation-delay: var(--dl);
+}
+
+.smart-tables .tbl b {
+  font-weight: normal;
+}
+
+/* the two labels swap in step with their table (--dl is inherited) */
+.smart-tables .tbl .up {
+  opacity: 0;
+  animation: show-up 5s infinite;
+  animation-delay: var(--dl);
+}
+
+.smart-tables .tbl .wait {
+  animation: show-wait 5s infinite;
+  animation-delay: var(--dl);
+}
+
+.smart-tables .tbl small {
+  display: grid;
+}
+
+.smart-tables .tbl small span {
+  grid-area: 1 / 1;
+}
+
+/* the waiter slides to whichever table has its hand up:
+   table 2, then 4, then 1, then 5, then 3 (40px per row) */
+.smart {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: calc(50% - 5px);
+  border-color: #b48cf0;
+  background: rgba(180, 140, 240, 0.12);
+  color: #c9a8f7;
+  animation: walk 5s infinite;
+}
+
+.smart::before {
+  content: "◀";
+  position: absolute;
+  left: -14px;
+  top: 9px;
+  color: #c9a8f7;
+  font-size: 10px;
+}
+
+.post .rest-sum {
+  margin: 10px 0 0;
+  padding: 6px 8px;
+  font-size: 11px;
+}
+
+.rest-old .rest-sum { background: rgba(224, 108, 108, 0.1); color: #e8a0a0; }
+.rest-new .rest-sum { background: rgba(127, 191, 127, 0.1); color: #a8d8a8; }
+
+@keyframes dots {
+  to { width: 3.2ch; }
+}
+
+@keyframes hand {
+  0% { border-color: #5a4a2c; color: var(--warn); background: rgba(217, 167, 90, 0.07); }
+  3%, 17% { border-color: var(--good); color: var(--good); background: rgba(127, 191, 127, 0.12); }
+  20%, 100% { border-color: #5a4a2c; color: var(--warn); background: rgba(217, 167, 90, 0.07); }
+}
+
+@keyframes show-up {
+  0%, 2% { opacity: 0; }
+  3%, 17% { opacity: 1; }
+  20%, 100% { opacity: 0; }
+}
+
+@keyframes show-wait {
+  0%, 2% { opacity: 1; }
+  3%, 17% { opacity: 0; }
+  20%, 100% { opacity: 1; }
+}
+
+@keyframes walk {
+  0%, 16% { transform: translateY(40px); }
+  20%, 36% { transform: translateY(120px); }
+  40%, 56% { transform: translateY(0); }
+  60%, 76% { transform: translateY(160px); }
+  80%, 96% { transform: translateY(80px); }
+  100% { transform: translateY(40px); }
+}
+
+
+/* ---------- 3. blocking vs non-blocking timeline ---------- */
+
+.tl-row {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.tl-row > span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.tl-track {
+  position: relative;
+  height: 26px;
+  border-bottom: 1px solid #333;
+}
+
+/* each job is a block placed by --s (start) and --w (width) in % */
+.job {
+  position: absolute;
+  top: 3px;
+  left: var(--s);
+  width: var(--w);
+  height: 20px;
+  border: 1px solid;
+  font-size: 10px;
+  line-height: 18px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.job.a { border-color: var(--warn); color: var(--warn); background: rgba(217, 167, 90, 0.12); }
+.job.b { border-color: #7fb2e6; color: #7fb2e6; background: rgba(127, 178, 230, 0.12); }
+.job.c { border-color: #c9a8f7; color: #c9a8f7; background: rgba(180, 140, 240, 0.12); }
+
+/* time spent waiting for disk or the app */
+.job.idle {
+  border-style: dashed;
+  border-color: #555;
+  color: #777;
+  background: repeating-linear-gradient(45deg, transparent 0 4px, rgba(255, 255, 255, 0.05) 4px 8px);
+}
+
+/* waiting that happens in the background, while other work runs */
+.job.bg {
+  top: -6px;
+  height: 6px;
+  border: none;
+  border-top: 1px dashed var(--warn);
+  background: none;
+}
+
+.done {
+  position: absolute;
+  top: 3px;
+  left: var(--s);
+  padding-left: 4px;
+  color: var(--good);
+  font-size: 10px;
+  line-height: 20px;
+}
+
+/* a playhead sweeps across both rows at the same speed */
+.tl-track::after {
+  content: "";
+  position: absolute;
+  top: -8px;
+  bottom: -2px;
+  left: 0;
+  width: 2px;
+  background: var(--bright);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+  animation: sweep 6s linear infinite;
+}
+
+@keyframes sweep {
+  from { left: 0; }
+  to { left: 100%; }
+}
+
+
+/* ---------- 4. memory as connections pile up ---------- */
+
+.arrivals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.arrivals i {
+  width: 10px;
+  height: 10px;
+  border: 1px solid #7fb2e6;
+  opacity: 0;
+  animation: arrive 6s infinite;
+  animation-delay: calc(var(--n) * 0.25s);
+}
+
+.mem-row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 11px;
+}
+
+.mem-bar {
+  height: 12px;
+  background: #2a2a2d;
+}
+
+.mem-bar i {
+  display: block;
+  height: 100%;
+  animation: 6s linear infinite;
+}
+
+.mem-bar .heavy {
+  background: var(--bad);
+  animation-name: heavy;
+}
+
+.mem-bar .light {
+  background: var(--good);
+  animation-name: light;
+}
+
+@keyframes arrive {
+  0% { opacity: 0; transform: scale(0.4); }
+  4%, 90% { opacity: 1; transform: none; }
+  100% { opacity: 0; }
+}
+
+@keyframes heavy {
+  0% { width: 4%; }
+  90% { width: 100%; }
+  100% { width: 4%; }
+}
+
+@keyframes light {
+  0% { width: 4%; }
+  90% { width: 14%; }
+  100% { width: 4%; }
 }
 
 
@@ -525,13 +951,41 @@ html {
     font-size: 11px;
   }
 
-  .tables {
+  .arch-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* lines turn vertical on phones, so hide the sliding dots */
+  .arch-row > .wire {
+    flex: none;
+    width: 2px;
+    height: 26px;
+    margin: 0 auto;
+  }
+
+  .arch-row > .wire .packet {
+    display: none;
+  }
+
+  .arch-row > .wire .wire-label {
+    top: 6px;
+    left: 10px;
+    transform: none;
+  }
+
+  .rest {
+    grid-template-columns: 1fr;
+  }
+
+  .tl-row {
+    grid-template-columns: 1fr;
     gap: 4px;
   }
 
-  .table small {
-    font-size: 8px;
-    letter-spacing: -0.5px;
+  .mem-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
   }
 
   .wire-label,
@@ -555,7 +1009,32 @@ html {
 @media (prefers-reduced-motion: reduce) {
   .packet,
   .node,
-  .tables-nginx .table {
+  .master,
+  .links span::after,
+  .loop,
+  .conns i,
+  .stare::after,
+  .smart-tables .tbl,
+  .smart-tables .tbl span,
+  .smart,
+  .tl-track::after,
+  .arrivals i,
+  .mem-bar i {
     animation: none;
   }
+
+  .stare::after {
+    width: auto;
+  }
+
+  .smart-tables .tbl .up {
+    opacity: 0;
+  }
+
+  .arrivals i {
+    opacity: 1;
+  }
+
+  .mem-bar .heavy { width: 100%; }
+  .mem-bar .light { width: 14%; }
 }

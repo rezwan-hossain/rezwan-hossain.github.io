@@ -392,54 +392,167 @@ curl -I http://example.com       # should say 200 OK</code></pre>
 
       <h2 id="fast">Why NGINX Is So Fast</h2>
       <p>
-        Picture two restaurants. In the first one, every table gets its own
-        waiter. The waiter takes the order, then just stands there waiting for
-        the food. Ten tables, ten waiters, mostly standing around. That's how
-        many older setups worked, like Apache's classic "prefork" mode: one
-        worker per connection.
-      </p>
-      <p>
-        In the second restaurant, one waiter handles all the tables. While one
-        table's food is cooking, the waiter moves on to the next table. Nobody
-        stands still. That's NGINX.
+        NGINX is known for handling a huge number of visitors at once while
+        using very little memory. There's no magic in it. It comes down to
+        four design choices, and the restaurant explains all of them.
       </p>
 
-      <div
-        class="viz"
-        role="img"
-        aria-label="Six tables each stuck waiting with their own waiter, next to one NGINX waiter serving all six tables in turn."
-      >
-        <p class="viz-title">Old way: one waiter per table</p>
-        <div class="tables tables-old">
-          <div class="table">T1<small>waiting</small></div>
-          <div class="table">T2<small>waiting</small></div>
-          <div class="table">T3<small>waiting</small></div>
-          <div class="table">T4<small>waiting</small></div>
-          <div class="table">T5<small>waiting</small></div>
-          <div class="table">T6<small>waiting</small></div>
+      <h3 id="architecture">The Big Picture</h3>
+      <p>
+        When NGINX starts, it runs one <strong>master process</strong> and a
+        few <strong>worker processes</strong>. The master is the manager: it
+        reads the config, opens ports 80 and 443, and starts or replaces
+        workers. The workers do the real job of talking to visitors.
+      </p>
+
+      <div class="viz" role="img" aria-label="Internet clients connect over TCP to NGINX. Inside NGINX, a master process controls three worker processes, each running its own event loop, sharing memory for cache and rate limits. Workers proxy requests to the upstream app.">
+        <div class="arch-row">
+          <div class="node">Clients<small>browsers</small></div>
+          <div class="wire"><span class="wire-label">TCP</span><span class="packet in1"></span></div>
+          <div class="arch-box">
+            <p class="arch-name">NGINX</p>
+            <div class="master">Master process<small>reads config · manages workers</small></div>
+            <div class="links"><span></span><span></span><span></span></div>
+            <div class="workers">
+              <div class="worker"><span class="loop"></span>Worker 1<div class="conns"><i></i><i></i><i></i><i></i><i></i></div></div>
+              <div class="worker"><span class="loop"></span>Worker 2<div class="conns"><i></i><i></i><i></i><i></i><i></i></div></div>
+              <div class="worker"><span class="loop"></span>Worker N<div class="conns"><i></i><i></i><i></i><i></i><i></i></div></div>
+            </div>
+            <div class="shm">Shared memory: cache keys, rate limits</div>
+          </div>
+          <div class="wire"><span class="wire-label">proxy</span><span class="packet in1" style="animation-delay: 0.5s"></span></div>
+          <div class="node">Upstream<small>your app</small></div>
         </div>
-        <p class="viz-title">NGINX: one waiter, every table</p>
-        <div class="tables tables-nginx">
-          <div class="table">T1<small>served</small></div>
-          <div class="table">T2<small>served</small></div>
-          <div class="table">T3<small>served</small></div>
-          <div class="table">T4<small>served</small></div>
-          <div class="table">T5<small>served</small></div>
-          <div class="table">T6<small>served</small></div>
-        </div>
-        <p class="viz-caption">
-          One NGINX worker keeps moving between connections instead of waiting.
-        </p>
+        <p class="viz-caption">Each worker runs an event loop (the spinning ring) and serves many connections (the lights).</p>
       </div>
 
+      <h3 id="event-driven">1. Event-Driven: Move Only When a Hand Goes Up</h3>
       <p>
-        In real life, NGINX starts one worker per CPU core (<code
-          >worker_processes auto;</code
-        >). Each worker handles many connections at once: 768 by default on
-        Ubuntu (<code>worker_connections</code>), and you can raise that into
-        the thousands. That's why even a small 1 CPU server can serve a lot of
-        static traffic.
+        Older setups, like Apache's classic "prefork" mode, give every
+        connection its own worker. Picture a waiter assigned to each table.
+        After taking the order, the waiter just stands there until the food
+        is ready. With a thousand tables, you need a thousand waiters, and
+        most of them are doing nothing.
       </p>
+      <p>
+        NGINX works differently. One waiter looks after many tables and only
+        walks over when a customer raises a hand. In computer terms, the
+        operating system tells the worker "this connection has something to
+        do" (on Linux this is called <code>epoll</code>), and the worker
+        handles exactly that, then moves on.
+      </p>
+
+      <div class="viz" role="img" aria-label="Left: four tables each with their own waiter, all blocked and staring. Right: five tables raise their hands at different times, and one NGINX waiter slides to whichever table needs attention.">
+        <div class="rest">
+          <div class="rest-col rest-old">
+            <p class="rest-head">One waiter per table</p>
+            <div class="r-row"><div class="tbl">Table 1</div><span>→</span><div class="waiter blocked">Waiter 1<small>BLOCKED</small></div></div>
+            <div class="r-row"><div class="tbl">Table 2</div><span>→</span><div class="waiter blocked">Waiter 2<small>BLOCKED</small></div></div>
+            <div class="r-row"><div class="tbl">Table 3</div><span>→</span><div class="waiter blocked">Waiter 3<small>BLOCKED</small></div></div>
+            <div class="r-row"><div class="tbl">Table 4</div><span>→</span><div class="waiter blocked">Waiter 4<small>BLOCKED</small></div></div>
+            <p class="rest-sum">Every waiter is busy <span class="stare">just staring</span><br />More tables = more waiters = more memory.</p>
+          </div>
+          <div class="rest-col rest-new">
+            <p class="rest-head">NGINX: one smart waiter</p>
+            <div class="smart-area">
+              <div class="smart-tables">
+              <div class="tbl" style="--dl: 2s"><b>Table 1</b><small><span class="wait">waiting</span><span class="up">✋ hand up</span></small></div>
+              <div class="tbl" style="--dl: 0s"><b>Table 2</b><small><span class="wait">waiting</span><span class="up">✋ hand up</span></small></div>
+              <div class="tbl" style="--dl: 4s"><b>Table 3</b><small><span class="wait">waiting</span><span class="up">✋ hand up</span></small></div>
+              <div class="tbl" style="--dl: 1s"><b>Table 4</b><small><span class="wait">waiting</span><span class="up">✋ hand up</span></small></div>
+              <div class="tbl" style="--dl: 3s"><b>Table 5</b><small><span class="wait">waiting</span><span class="up">✋ hand up</span></small></div>
+              </div>
+              <div class="waiter smart">One waiter<small>NGINX worker</small></div>
+            </div>
+            <p class="rest-sum">The waiter only moves when a hand goes up. No standing around.</p>
+          </div>
+        </div>
+      </div>
+
+      <p>Step by step, a worker's day looks like this:</p>
+      <ol>
+        <li>Many connections are open at once. The worker isn't watching any one of them.</li>
+        <li>The operating system says "connection 7 has new data".</li>
+        <li>The worker handles that bit of work: reads the request, sends some data.</li>
+        <li>It goes straight back to waiting for the next "hand up".</li>
+      </ol>
+
+      <h3 id="non-blocking">2. Non-Blocking: Never Stand and Wait</h3>
+      <p>
+        Some jobs involve waiting: reading a file from disk, or waiting for
+        your app to answer. A blocking server waits for each job to finish
+        before starting the next. NGINX starts the job, and while it's
+        waiting, it serves other customers. When the slow part is done, it
+        comes back and finishes.
+      </p>
+
+      <div class="viz" role="img" aria-label="Timeline: the blocking server finishes jobs A, B and C one after another, idling while A waits. The non-blocking server runs B and C during A's wait and finishes much earlier.">
+        <div class="tl-row">
+          <span>Blocking</span>
+          <div class="tl-track">
+            <span class="job a" style="--s: 0%; --w: 10%">A</span>
+            <span class="job idle" style="--s: 10%; --w: 45%">waiting for the app…</span>
+            <span class="job a" style="--s: 55%; --w: 7%">A</span>
+            <span class="job b" style="--s: 62%; --w: 12%">B</span>
+            <span class="job c" style="--s: 74%; --w: 12%">C</span>
+            <span class="done" style="--s: 86%">✓ done</span>
+          </div>
+        </div>
+        <div class="tl-row">
+          <span>Non-blocking</span>
+          <div class="tl-track">
+            <span class="job a" style="--s: 0%; --w: 10%">A</span>
+            <span class="job bg a" style="--s: 10%; --w: 45%"></span>
+            <span class="job b" style="--s: 10%; --w: 12%">B</span>
+            <span class="job c" style="--s: 22%; --w: 12%">C</span>
+            <span class="job a" style="--s: 55%; --w: 7%">A</span>
+            <span class="done" style="--s: 62%">✓ done</span>
+          </div>
+        </div>
+        <p class="viz-caption">Same three jobs. The non-blocking worker fills A's waiting time with B and C, so everything finishes sooner.</p>
+      </div>
+
+      <h3 id="memory">3. Less Memory per Connection</h3>
+      <p>
+        Every extra worker thread or process needs its own memory, and the
+        operating system spends time switching between them (called
+        <em>context switching</em>). Because NGINX doesn't create one per
+        connection, a new visitor costs it only a small amount of memory.
+        Memory stays low and steady, even with thousands of open
+        connections.
+      </p>
+
+      <div class="viz" role="img" aria-label="Connections keep arriving. Memory for a thread-per-connection server grows with every connection, while NGINX memory stays low.">
+        <div class="arrivals"><i style="--n: 0"></i><i style="--n: 1"></i><i style="--n: 2"></i><i style="--n: 3"></i><i style="--n: 4"></i><i style="--n: 5"></i><i style="--n: 6"></i><i style="--n: 7"></i><i style="--n: 8"></i><i style="--n: 9"></i><i style="--n: 10"></i><i style="--n: 11"></i><i style="--n: 12"></i><i style="--n: 13"></i><i style="--n: 14"></i><i style="--n: 15"></i><i style="--n: 16"></i><i style="--n: 17"></i><i style="--n: 18"></i><i style="--n: 19"></i></div>
+        <div class="mem-row"><span>One thread per connection</span><div class="mem-bar"><i class="heavy"></i></div></div>
+        <div class="mem-row"><span>NGINX</span><div class="mem-bar"><i class="light"></i></div></div>
+        <p class="viz-caption">Connections keep arriving (squares). One memory bar climbs with them, the other barely moves.</p>
+      </div>
+
+      <h3 id="workers">4. One Master, Many Workers</h3>
+      <p>
+        One waiter is fast, but one waiter can only be in one place. So NGINX
+        runs one worker per CPU core (<code>worker_processes auto;</code>), and
+        every core gets its own smart waiter. Each worker handles many
+        connections at once: 768 by default on Ubuntu
+        (<code>worker_connections</code>), and you can raise that into the
+        thousands.
+      </p>
+      <p>
+        The master process is also why <code>systemctl reload nginx</code>
+        doesn't drop anyone. The master starts new workers with the new
+        config, and the old workers finish serving their current visitors
+        before they quit.
+      </p>
+
+      <h3 id="fast-summary">In Short</h3>
+      <table>
+        <tr><th>Reason</th><th>Restaurant</th><th>What it gives you</th></tr>
+        <tr><td>Event-driven</td><td>Waiter moves only when a hand goes up</td><td>Many connections per worker</td></tr>
+        <tr><td>Non-blocking</td><td>Serve others while the kitchen cooks</td><td>No time wasted waiting</td></tr>
+        <tr><td>Low memory</td><td>No extra waiter per table</td><td>Thousands of connections on a small server</td></tr>
+        <tr><td>Master + workers</td><td>One manager, one waiter per core</td><td>Uses every CPU core, reloads without downtime</td></tr>
+      </table>
 
       <h2 id="static">Job 1: Serving Static Files</h2>
       <p>
