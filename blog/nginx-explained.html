@@ -71,7 +71,7 @@
           <li><a href="#files">Where the files live</a></li>
           <li><a href="#config">How a config is organized</a></li>
           <li><a href="#first-site">Your first site in 5 steps</a></li>
-          <li><a href="#fast">Why NGINX is so fast</a></li>
+          <li><a href="#fast">Why is NGINX so fast?</a></li>
           <li><a href="#static">Job 1: Static files</a></li>
           <li><a href="#proxy">Job 2: Reverse proxy</a></li>
           <li><a href="#balancing">Job 3: Load balancing</a></li>
@@ -390,19 +390,35 @@ curl -I http://example.com       # should say 200 OK</code></pre>
         <a href="dns-interview-questions.html">DNS post</a> explains A records.
       </p>
 
-      <h2 id="fast">Why NGINX Is So Fast</h2>
+      <h2 id="fast">Why Is NGINX So Fast?</h2>
       <p>
-        NGINX is known for handling a huge number of visitors at once while
-        using very little memory. There's no magic in it. It comes down to
-        four design choices, and the restaurant explains all of them.
+        NGINX can keep thousands of visitors connected at the same time on a
+        small server, and still use very little memory. People sometimes talk
+        about it like it's magic. It isn't. It comes down to four design
+        choices:
       </p>
+      <ol>
+        <li><a href="#event-driven">Event-driven</a>: react to what's ready, don't babysit connections</li>
+        <li><a href="#non-blocking">Non-blocking</a>: never sit and wait</li>
+        <li><a href="#memory">Low memory per connection</a></li>
+        <li><a href="#workers">One master, several workers</a>: use every CPU core</li>
+      </ol>
+      <p>Let's go back to the restaurant to see each one.</p>
 
-      <h3 id="architecture">The Big Picture</h3>
+      <h3 id="architecture">The Big Picture: Manager, Waiters and a Notice Board</h3>
       <p>
-        When NGINX starts, it runs one <strong>master process</strong> and a
-        few <strong>worker processes</strong>. The master is the manager: it
-        reads the config, opens ports 80 and 443, and starts or replaces
-        workers. The workers do the real job of talking to visitors.
+        When NGINX starts, it doesn't create one process. It creates a small
+        team:
+      </p>
+      <ul>
+        <li><strong>The master process is the manager.</strong> It reads the config, opens ports 80 and 443, and hires or replaces workers. It never serves customers itself.</li>
+        <li><strong>Worker processes are the waiters.</strong> They talk to visitors, send files and pass orders to your app.</li>
+        <li><strong>Shared memory is the notice board in the back.</strong> Every waiter can read it. NGINX keeps things like the list of cached pages and rate-limit counters there, so all workers see the same numbers.</li>
+      </ul>
+      <p>
+        A visitor's request lands on one of the workers. The surprising part
+        is how many visitors one worker looks after at the same time. That's
+        where the speed comes from.
       </p>
 
       <div class="viz" role="img" aria-label="Internet clients connect over TCP to NGINX. Inside NGINX, a master process controls three worker processes, each running its own event loop, sharing memory for cache and rate limits. Workers proxy requests to the upstream app.">
@@ -426,20 +442,23 @@ curl -I http://example.com       # should say 200 OK</code></pre>
         <p class="viz-caption">Each worker runs an event loop (the spinning ring) and serves many connections (the lights).</p>
       </div>
 
-      <h3 id="event-driven">1. Event-Driven: Move Only When a Hand Goes Up</h3>
+      <h3 id="event-driven">1. Event-Driven: One Waiter, Many Tables</h3>
       <p>
-        Older setups, like Apache's classic "prefork" mode, give every
-        connection its own worker. Picture a waiter assigned to each table.
-        After taking the order, the waiter just stands there until the food
-        is ready. With a thousand tables, you need a thousand waiters, and
-        most of them are doing nothing.
+        Picture a restaurant where every table gets its own waiter. You sit
+        down, order, and your waiter stands next to your table until the food
+        arrives. Now picture 1,000 tables. That's 1,000 waiters on the payroll,
+        and almost all of them are just standing there.
       </p>
       <p>
-        NGINX works differently. One waiter looks after many tables and only
-        walks over when a customer raises a hand. In computer terms, the
-        operating system tells the worker "this connection has something to
-        do" (on Linux this is called <code>epoll</code>), and the worker
-        handles exactly that, then moves on.
+        That's how process-per-connection servers work, like Apache's classic
+        "prefork" mode. Every visitor gets a dedicated worker, even while
+        nothing is happening on that connection.
+      </p>
+      <p>
+        NGINX hires a smarter waiter. One waiter looks after a whole section
+        of tables, and only walks over when someone raises a hand. The waiter
+        doesn't check each table over and over. The tables signal when they
+        need something.
       </p>
 
       <div class="viz" role="img" aria-label="Left: four tables each with their own waiter, all blocked and staring. Right: five tables raise their hands at different times, and one NGINX waiter slides to whichever table needs attention.">
@@ -469,22 +488,58 @@ curl -I http://example.com       # should say 200 OK</code></pre>
         </div>
       </div>
 
-      <p>Step by step, a worker's day looks like this:</p>
+      <p>
+        In computer terms, the "raised hand" is a message from the operating
+        system: "this connection has something ready". On Linux, NGINX gets
+        these messages through a feature called <code>epoll</code>.
+      </p>
+      <p><strong>How it works, step by step:</strong></p>
       <ol>
-        <li>Many connections are open at once. The worker isn't watching any one of them.</li>
-        <li>The operating system says "connection 7 has new data".</li>
-        <li>The worker handles that bit of work: reads the request, sends some data.</li>
-        <li>It goes straight back to waiting for the next "hand up".</li>
+        <li>A worker has many connections open at once.</li>
+        <li>The operating system tells it which ones have something new, like a request that just arrived.</li>
+        <li>The worker handles that bit of work.</li>
+        <li>It goes back to its loop and picks up the next ready connection.</li>
       </ol>
+      <div class="why">
+        <p class="why-label">Why this makes NGINX fast</p>
+        <p>NGINX doesn't need a new process or thread for every visitor. One worker reacts only to connections that actually need attention, so it can look after thousands of them.</p>
+      </div>
 
       <h3 id="non-blocking">2. Non-Blocking: Never Stand and Wait</h3>
       <p>
-        Some jobs involve waiting: reading a file from disk, or waiting for
-        your app to answer. A blocking server waits for each job to finish
-        before starting the next. NGINX starts the job, and while it's
-        waiting, it serves other customers. When the slow part is done, it
-        comes back and finishes.
+        A customer orders soup, and the kitchen needs five minutes to make it.
+        Should the waiter stand next to that table for five minutes?
       </p>
+      <p>
+        Of course not. A good waiter tells the kitchen, goes to serve other
+        tables, and comes back when the soup is ready.
+      </p>
+      <p>
+        NGINX works the same way. Some steps involve waiting: for your app to
+        answer, or for a slow visitor's network to accept more data. When a worker hits one of these, it doesn't freeze.
+        It moves on to other ready work and comes back when the data is there.
+      </p>
+
+      <div class="compare">
+        <div class="bad-way">
+          <p>Blocking</p>
+          <ol>
+            <li>Request A starts</li>
+            <li>The worker waits for A…</li>
+            <li>B and C wait in line</li>
+            <li>A finishes, then B, then C</li>
+          </ol>
+        </div>
+        <div class="good-way">
+          <p>Non-blocking</p>
+          <ol>
+            <li>Request A starts, then waits for data</li>
+            <li>Meanwhile, the worker handles B</li>
+            <li>…and C</li>
+            <li>A's data arrives, and the worker finishes A</li>
+          </ol>
+        </div>
+      </div>
 
       <div class="viz" role="img" aria-label="Timeline: the blocking server finishes jobs A, B and C one after another, idling while A waits. The non-blocking server runs B and C during A's wait and finishes much earlier.">
         <div class="tl-row">
@@ -511,15 +566,27 @@ curl -I http://example.com       # should say 200 OK</code></pre>
         </div>
         <p class="viz-caption">Same three jobs. The non-blocking worker fills A's waiting time with B and C, so everything finishes sooner.</p>
       </div>
+      <div class="why">
+        <p class="why-label">Why this makes NGINX fast</p>
+        <p>The worker spends its time doing work instead of waiting for it. Waiting time on one request becomes working time for other requests.</p>
+      </div>
 
-      <h3 id="memory">3. Less Memory per Connection</h3>
+      <h3 id="memory">3. Low Memory: No Extra Staff per Customer</h3>
       <p>
-        Every extra worker thread or process needs its own memory, and the
-        operating system spends time switching between them (called
-        <em>context switching</em>). Because NGINX doesn't create one per
-        connection, a new visitor costs it only a small amount of memory.
-        Memory stays low and steady, even with thousands of open
-        connections.
+        If every new customer needs a new waiter, a busy evening gets
+        expensive fast: more salaries, more space, more people for the
+        manager to keep track of.
+      </p>
+      <p>
+        Servers have the same problem. Every extra process or thread needs its
+        own memory, and the operating system has to keep switching the CPU
+        between them (called <em>context switching</em>). With thousands of
+        visitors, that overhead adds up.
+      </p>
+      <p>
+        NGINX keeps a small, fixed team of workers. A new visitor only adds a
+        little bookkeeping to a worker that's already running, not a whole new
+        worker.
       </p>
 
       <div class="viz" role="img" aria-label="Connections keep arriving. Memory for a thread-per-connection server grows with every connection, while NGINX memory stays low.">
@@ -529,29 +596,70 @@ curl -I http://example.com       # should say 200 OK</code></pre>
         <p class="viz-caption">Connections keep arriving (squares). One memory bar climbs with them, the other barely moves.</p>
       </div>
 
-      <h3 id="workers">4. One Master, Many Workers</h3>
+      <p>What you get from that:</p>
+      <ul>
+        <li>far less memory per connection</li>
+        <li>less time lost switching between threads</li>
+        <li>many more visitors on the same hardware</li>
+        <li>predictable memory use, even during a traffic spike</li>
+      </ul>
+      <div class="why">
+        <p class="why-label">Why this makes NGINX fast</p>
+        <p>A thousand connected visitors doesn't mean a thousand threads. Memory stays low and steady, so the server has room left for real work.</p>
+      </div>
+
+      <h3 id="workers">4. One Master, Several Workers: Use Every CPU Core</h3>
       <p>
-        One waiter is fast, but one waiter can only be in one place. So NGINX
-        runs one worker per CPU core (<code>worker_processes auto;</code>), and
-        every core gets its own smart waiter. Each worker handles many
-        connections at once: 768 by default on Ubuntu
-        (<code>worker_connections</code>), and you can raise that into the
-        thousands.
+        One smart waiter is great, but there's a limit to what one person can
+        carry. So the manager hires a few waiters and gives each one their
+        own section of the restaurant.
       </p>
       <p>
-        The master process is also why <code>systemctl reload nginx</code>
-        doesn't drop anyone. The master starts new workers with the new
-        config, and the old workers finish serving their current visitors
-        before they quit.
+        A CPU core can only run one thing at a time. If your server has 4
+        cores, NGINX can run 4 workers, one per core, so no core sits idle.
+        You rarely need to count them yourself. This one line, already in
+        Ubuntu's <code>nginx.conf</code>, does it for you:
+      </p>
+      <pre><code>worker_processes auto;    # one worker per CPU core</code></pre>
+      <p>
+        Each worker has its own event loop and handles many connections:
+        768 by default on Ubuntu (<code>worker_connections</code>), and you
+        can raise that into the thousands.
+      </p>
+      <div class="why">
+        <p class="why-label">Why this makes NGINX fast</p>
+        <p>Several workers run side by side, one per core, so NGINX uses all the CPU power you're paying for.</p>
+      </div>
+
+      <h3 id="graceful-reload">Bonus: Reloading Without Kicking Anyone Out</h3>
+      <p>
+        Imagine changing the menu in the middle of dinner. A bad manager
+        throws everyone out, prints new menus and reopens. A good manager
+        gives the new menu to fresh waiters, and lets the current waiters
+        finish with their tables before they go home.
+      </p>
+      <p>That's exactly what happens when you run:</p>
+      <pre><code>sudo systemctl reload nginx</code></pre>
+      <ol>
+        <li>The master reads the new config.</li>
+        <li>It starts new workers with the new settings.</li>
+        <li>The old workers stop taking new visitors and finish the ones they have.</li>
+        <li>When they're done, they quit.</li>
+      </ol>
+      <p>
+        This is called a <strong>graceful reload</strong>. Visitors don't see
+        an error page while you change settings. If the new config has a
+        mistake, the master keeps the old workers running, which is one more
+        reason to run <code>sudo nginx -t</code> first.
       </p>
 
-      <h3 id="fast-summary">In Short</h3>
+      <h3 id="fast-summary">Summary: The Four Secrets</h3>
       <table>
-        <tr><th>Reason</th><th>Restaurant</th><th>What it gives you</th></tr>
-        <tr><td>Event-driven</td><td>Waiter moves only when a hand goes up</td><td>Many connections per worker</td></tr>
-        <tr><td>Non-blocking</td><td>Serve others while the kitchen cooks</td><td>No time wasted waiting</td></tr>
-        <tr><td>Low memory</td><td>No extra waiter per table</td><td>Thousands of connections on a small server</td></tr>
-        <tr><td>Master + workers</td><td>One manager, one waiter per core</td><td>Uses every CPU core, reloads without downtime</td></tr>
+        <tr><th>Design choice</th><th>In the restaurant</th><th>What you get</th></tr>
+        <tr><td>Event-driven</td><td>The waiter comes when a hand goes up</td><td>Thousands of connections per worker</td></tr>
+        <tr><td>Non-blocking</td><td>Serve other tables while the soup cooks</td><td>Almost no idle time</td></tr>
+        <tr><td>Low memory</td><td>No new waiter for every customer</td><td>More visitors on the same server</td></tr>
+        <tr><td>Master + workers</td><td>A manager and one waiter per section</td><td>Every CPU core in use, reloads without downtime</td></tr>
       </table>
 
       <h2 id="static">Job 1: Serving Static Files</h2>
