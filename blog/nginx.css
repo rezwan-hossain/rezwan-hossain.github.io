@@ -32,6 +32,11 @@
   overflow-wrap: anywhere;
 }
 
+/* the NGINX vs Apache table has short words only, so never split them */
+.post .cmp td {
+  overflow-wrap: normal;
+}
+
 /* restaurant ↔ web server table: right column is the "real" thing */
 .analogy td:first-child {
   color: var(--muted);
@@ -436,6 +441,82 @@
 }
 
 
+/* ---------- table of contents ---------- */
+
+.toc {
+  margin: 24px 0;
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.post .toc p {
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.post .toc ol {
+  margin: 0;
+  padding-left: 22px;
+  columns: 2;
+  column-gap: 24px;
+  font-size: 13px;
+}
+
+.post .toc li {
+  break-inside: avoid;
+}
+
+.post .toc a {
+  border-bottom: none;
+}
+
+.post .toc a:hover {
+  border-bottom: 1px solid var(--bright);
+}
+
+/* headings jumped to from the table of contents get a little space on top */
+.post h2[id],
+.post h3[id] {
+  scroll-margin-top: 20px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+
+/* ---------- small print under the title ---------- */
+
+.post .meta {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+
+/* ---------- author box ---------- */
+
+.author {
+  margin: 48px 0 24px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--bright);
+  background: var(--panel);
+}
+
+.post .author p {
+  margin: 0;
+  font-size: 13px;
+}
+
+.post .author p + p {
+  margin-top: 6px;
+}
+
 /* ---------- phones ---------- */
 
 @media (max-width: 500px) {
@@ -461,6 +542,10 @@
   .errors td:first-child {
     white-space: normal;
     overflow-wrap: normal;
+  }
+
+  .post .toc ol {
+    columns: 1;
   }
 }
 
