@@ -1,0 +1,1183 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      20 AI Concepts Explained Simply, With Analogies · Rezwan Hossain
+    </title>
+    <meta
+      name="description"
+      content="LLMs, tokens, embeddings, attention, transformers, RAG, vector databases, MCP, agents, reasoning models, distillation and quantization, each explained with an everyday analogy and a small animation."
+    />
+    <link
+      rel="canonical"
+      href="https://rezwan-hossain.github.io/minimalist-portfolio/blog/ai-concepts.html"
+    />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="20 AI Concepts Explained Simply" />
+    <meta
+      property="og:description"
+      content="From LLMs to quantization: one analogy, one animation and one line to remember for each idea."
+    />
+    <meta
+      property="og:url"
+      content="https://rezwan-hossain.github.io/minimalist-portfolio/blog/ai-concepts.html"
+    />
+    <meta property="article:published_time" content="2026-11-20" />
+    <meta property="article:author" content="Rezwan Hossain" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="blog.css" />
+    <link rel="stylesheet" href="ai.css" />
+  </head>
+  <body>
+    <article class="container post">
+      <header>
+        <a class="back" href="index.html">← all posts</a>
+        <h1>20 AI Concepts Explained Simply</h1>
+        <p class="date">Nov 20, 2026 · by Rezwan Hossain</p>
+      </header>
+
+      <p>
+        Everyone talks about tokens, RAG, agents and MCP, but most explanations
+        either stay too vague or jump straight into math. This post sits in the
+        middle.
+      </p>
+      <p>
+        Each idea gets three things: an everyday picture to hang it on, a short
+        plain explanation, and a small animation. At the end of each one there's
+        a single line to remember. Read them in order, because each idea builds
+        on the one before it.
+      </p>
+
+      <nav class="toc" aria-label="Contents">
+        <p>Contents</p>
+        <ol>
+          <li><a href="#llm">Large Language Model</a></li>
+          <li><a href="#tokens">Tokenization</a></li>
+          <li><a href="#vectors">Vectorization</a></li>
+          <li><a href="#attention">Attention</a></li>
+          <li><a href="#self-supervised">Self-Supervised Learning</a></li>
+          <li><a href="#transformer">Transformer</a></li>
+          <li><a href="#fine-tuning">Fine-tuning</a></li>
+          <li><a href="#few-shot">Few-shot Prompting</a></li>
+          <li><a href="#rag">RAG</a></li>
+          <li><a href="#vector-db">Vector Database</a></li>
+          <li><a href="#mcp">Model Context Protocol</a></li>
+          <li><a href="#context">Context Engineering</a></li>
+          <li><a href="#agents">Agents</a></li>
+          <li><a href="#rl">Reinforcement Learning</a></li>
+          <li><a href="#cot">Chain of Thought</a></li>
+          <li><a href="#reasoning">Reasoning Models</a></li>
+          <li><a href="#multimodal">Multi-modal Models</a></li>
+          <li><a href="#small">Small Language Models</a></li>
+          <li><a href="#distillation">Distillation</a></li>
+          <li><a href="#quantization">Quantization</a></li>
+        </ol>
+      </nav>
+
+      <!-- ============ PART 1 ============ -->
+
+      <h2>Part 1: How a Model Reads and Learns</h2>
+
+      <h3 id="llm">1. Large Language Model (LLM)</h3>
+      <p class="ai-like">
+        <b>Like:</b> the autocomplete on your phone, if it had read a huge part
+        of the internet.
+      </p>
+      <p>
+        An LLM is a program that guesses the next word. You give it some text,
+        it picks the most likely next piece, adds it, and guesses again. Repeat
+        that a few thousand times and you get an email, an essay or a block of
+        code.
+      </p>
+      <p>
+        "Large" means it has billions of numbers inside (called
+        <b>parameters</b>) that were tuned while it read a huge amount of text.
+        ChatGPT, Claude, Gemini and Llama are all LLMs. It doesn't look facts
+        up. It writes what <em>sounds</em> most likely, which is why it can be
+        wrong with full confidence.
+      </p>
+      <div
+        class="ai-viz"
+        role="img"
+        aria-label="The model reads 'The cat sat on the' and scores possible next words: mat 62 percent, sofa 21 percent, roof 9 percent. It picks mat."
+      >
+        <p>The cat sat on the <span class="ai-pick">mat</span></p>
+        <div class="ai-guess top" style="--w: 62%; --i: 0">
+          <span>mat</span><b></b><em>62%</em>
+        </div>
+        <div class="ai-guess" style="--w: 21%; --i: 1">
+          <span>sofa</span><b></b><em>21%</em>
+        </div>
+        <div class="ai-guess" style="--w: 9%; --i: 2">
+          <span>roof</span><b></b><em>9%</em>
+        </div>
+        <p class="ai-cap">it scores every possible next word, then picks one</p>
+      </div>
+      <p class="ai-mem">LLM = a next-word guesser, repeated very fast.</p>
+
+      <h3 id="tokens">2. Tokenization</h3>
+      <p class="ai-like">
+        <b>Like:</b> chopping vegetables before cooking. The model can't take a
+        whole sentence in one bite. It needs small pieces.
+      </p>
+      <p>
+        Models don't see letters or words. They see <b>tokens</b>. Common words
+        stay whole ("the", "cat"), while rare words get cut into parts ("un" +
+        "believ" + "able"). Each token is then swapped for a number from a fixed
+        list called the vocabulary.
+      </p>
+      <p>
+        In English, one token is roughly 4 characters, or about ¾ of a word.
+        This matters because prices and limits are counted in tokens. It also
+        explains some odd mistakes. A model can miscount the letters in
+        "strawberry" because it sees chunks, not letters.
+      </p>
+      <div
+        class="ai-viz"
+        role="img"
+        aria-label="The word unbelievable! splits into four tokens: un, believ, able and an exclamation mark, each with a number ID."
+      >
+        <div class="ai-split">
+          <span>un<small>359</small></span>
+          <span>believ<small>14361</small></span>
+          <span>able<small>481</small></span>
+          <span>!<small>0</small></span>
+        </div>
+        <p class="ai-cap">one word, four tokens, four numbers (example IDs)</p>
+      </div>
+      <p class="ai-mem">Tokens are the model's letters. You pay per token.</p>
+
+      <h3 id="vectors">3. Vectorization (Embeddings)</h3>
+      <p class="ai-like">
+        <b>Like:</b> GPS coordinates for meaning. Places close on a map are near
+        each other, and words with close meanings get close numbers.
+      </p>
+      <p>
+        Each token becomes a long list of numbers called a <b>vector</b> (or
+        <b>embedding</b>), often hundreds or thousands of numbers long. These
+        numbers are learned so that "cat" and "kitten" land near each other and
+        far from "truck".
+      </p>
+      <p>
+        Now the computer can do math with meaning. It can measure how close two
+        ideas are. The famous example: king − man + woman lands close to queen.
+      </p>
+      <div
+        class="ai-viz"
+        role="img"
+        aria-label="A slowly turning 3D space of word vectors, with x, y and z axes and a grid floor. Animals (cat, kitten, dog) float together in one corner, fruits (apple, banana, mango) in another, vehicles (car, truck, bus) in another, and people (man, woman, king, queen) in a fourth. Two parallel arrows show that man to woman points the same way as king to queen. The new word puppy flies in and lands next to dog. Below, cat's numbers are shown and similarity bars say cat is very close to kitten and dog, and far from apple and truck."
+      >
+        <div class="ai-3d">
+          <div class="ai-3d-scene">
+            <span class="ai-3d-floor"></span>
+            <span class="ai-3d-pt mark ax" style="--x: -110px; --y: 0px; --z: 0px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: 0px; --y: 0px; --z: -110px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: -90px; --y: 0px; --z: 0px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: 0px; --y: 0px; --z: -90px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: -70px; --y: 0px; --z: 0px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: 0px; --y: 0px; --z: -70px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: -50px; --y: 0px; --z: 0px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: 0px; --y: 0px; --z: -50px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: -30px; --y: 0px; --z: 0px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: 0px; --y: 0px; --z: -30px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: -10px; --y: 0px; --z: 0px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: 0px; --y: 0px; --z: -10px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: 10px; --y: 0px; --z: 0px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: 0px; --y: 0px; --z: 10px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: 30px; --y: 0px; --z: 0px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: 0px; --y: 0px; --z: 30px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: 50px; --y: 0px; --z: 0px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: 0px; --y: 0px; --z: 50px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: 70px; --y: 0px; --z: 0px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: 0px; --y: 0px; --z: 70px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: 90px; --y: 0px; --z: 0px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: 0px; --y: 0px; --z: 90px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: 110px; --y: 0px; --z: 0px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: 0px; --y: 0px; --z: 110px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: 0px; --y: -90px; --z: 0px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: 0px; --y: -70px; --z: 0px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: 0px; --y: -50px; --z: 0px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: 0px; --y: -30px; --z: 0px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: 0px; --y: -10px; --z: 0px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: 0px; --y: 10px; --z: 0px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: 0px; --y: 30px; --z: 0px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: 0px; --y: 50px; --z: 0px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: 0px; --y: 70px; --z: 0px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax" style="--x: 0px; --y: 90px; --z: 0px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark ax lab" style="--x: 124px; --y: 0px; --z: 0px"><span class="ai-3d-face"><i></i><b>x</b></span></span>
+            <span class="ai-3d-pt mark ax lab" style="--x: 0px; --y: -104px; --z: 0px"><span class="ai-3d-face"><i></i><b>y</b></span></span>
+            <span class="ai-3d-pt mark ax lab" style="--x: 0px; --y: 0px; --z: 124px"><span class="ai-3d-face"><i></i><b>z</b></span></span>
+            <span class="ai-3d-pt mark arr" style="--x: -32px; --y: 40px; --z: -64px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark arr" style="--x: -26px; --y: 40px; --z: -67px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark arr" style="--x: -20px; --y: 40px; --z: -70px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark arr" style="--x: -14px; --y: 40px; --z: -73px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark arr end" style="--x: -8px; --y: 40px; --z: -76px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark arr" style="--x: -32px; --y: -20px; --z: -64px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark arr" style="--x: -26px; --y: -20px; --z: -67px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark arr" style="--x: -20px; --y: -20px; --z: -70px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark arr" style="--x: -14px; --y: -20px; --z: -73px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-pt mark arr end" style="--x: -8px; --y: -20px; --z: -76px"><span class="ai-3d-face"><i></i></span></span>
+            <span class="ai-3d-shadow an" style="--x: -80px; --z: 40px"></span>
+            <span class="ai-3d-pt an" style="--x: -80px; --y: -20px; --z: 40px; --d: 0s"><span class="ai-3d-face"><i></i><b>cat</b></span></span>
+            <span class="ai-3d-shadow an" style="--x: -58px; --z: 62px"></span>
+            <span class="ai-3d-pt an" style="--x: -58px; --y: -38px; --z: 62px; --d: 0.2s"><span class="ai-3d-face"><i></i><b>kitten</b></span></span>
+            <span class="ai-3d-shadow an" style="--x: -98px; --z: 18px"></span>
+            <span class="ai-3d-pt an" style="--x: -98px; --y: 6px; --z: 18px; --d: 0.4s"><span class="ai-3d-face"><i></i><b>dog</b></span></span>
+            <span class="ai-3d-shadow fr" style="--x: 72px; --z: -38px"></span>
+            <span class="ai-3d-pt fr" style="--x: 72px; --y: -62px; --z: -38px; --d: 0.6s"><span class="ai-3d-face"><i></i><b>apple</b></span></span>
+            <span class="ai-3d-shadow fr" style="--x: 96px; --z: -72px"></span>
+            <span class="ai-3d-pt fr" style="--x: 96px; --y: -40px; --z: -72px; --d: 0.8s"><span class="ai-3d-face"><i></i><b>banana</b></span></span>
+            <span class="ai-3d-shadow fr" style="--x: 50px; --z: -74px"></span>
+            <span class="ai-3d-pt fr" style="--x: 50px; --y: -80px; --z: -74px; --d: 1.0s"><span class="ai-3d-face"><i></i><b>mango</b></span></span>
+            <span class="ai-3d-shadow ve" style="--x: 62px; --z: 82px"></span>
+            <span class="ai-3d-pt ve" style="--x: 62px; --y: 30px; --z: 82px; --d: 1.2s"><span class="ai-3d-face"><i></i><b>car</b></span></span>
+            <span class="ai-3d-shadow ve" style="--x: 92px; --z: 58px"></span>
+            <span class="ai-3d-pt ve" style="--x: 92px; --y: 48px; --z: 58px; --d: 1.4s"><span class="ai-3d-face"><i></i><b>truck</b></span></span>
+            <span class="ai-3d-shadow ve" style="--x: 38px; --z: 104px"></span>
+            <span class="ai-3d-pt ve" style="--x: 38px; --y: 52px; --z: 104px; --d: 1.6s"><span class="ai-3d-face"><i></i><b>bus</b></span></span>
+            <span class="ai-3d-shadow pe" style="--x: -40px; --z: -60px"></span>
+            <span class="ai-3d-pt pe" style="--x: -40px; --y: 40px; --z: -60px; --d: 1.8s"><span class="ai-3d-face"><i></i><b>man</b></span></span>
+            <span class="ai-3d-shadow pe" style="--x: 0px; --z: -80px"></span>
+            <span class="ai-3d-pt pe" style="--x: 0px; --y: 40px; --z: -80px; --d: 2.0s"><span class="ai-3d-face"><i></i><b>woman</b></span></span>
+            <span class="ai-3d-shadow pe" style="--x: -40px; --z: -60px"></span>
+            <span class="ai-3d-pt pe" style="--x: -40px; --y: -20px; --z: -60px; --d: 2.2s"><span class="ai-3d-face"><i></i><b>king</b></span></span>
+            <span class="ai-3d-shadow pe" style="--x: 0px; --z: -80px"></span>
+            <span class="ai-3d-pt pe" style="--x: 0px; --y: -20px; --z: -80px; --d: 2.4s"><span class="ai-3d-face"><i></i><b>queen</b></span></span>
+            <span class="ai-3d-pt pup" style="--x: -66px; --y: -4px; --z: 78px"><span class="ai-3d-face"><i></i><b>puppy</b></span></span>
+          </div>
+          <p class="ai-3d-hint">hover to pause</p>
+        </div>
+        <div class="ai-3d-legend">
+          <span class="an">animals</span>
+          <span class="fr">fruit</span>
+          <span class="ve">vehicles</span>
+          <span class="pe">people</span>
+          <span class="pup">new word</span>
+        </div>
+        <div class="ai-3d-read">
+          <p class="ai-in" style="--d: 0.4s"><b>cat</b> = [ 0.21, -0.43, 0.88, 0.05, -0.17, … ] <small>768 numbers in a real model</small></p>
+          <p class="ai-3d-sim" style="--w: 92%; --j: 0"><span>cat ↔ kitten</span><i></i><em>0.92</em></p>
+          <p class="ai-3d-sim" style="--w: 81%; --j: 1"><span>cat ↔ dog</span><i></i><em>0.81</em></p>
+          <p class="ai-3d-sim far" style="--w: 24%; --j: 2"><span>cat ↔ apple</span><i></i><em>0.24</em></p>
+          <p class="ai-3d-sim far" style="--w: 9%; --j: 3"><span>cat ↔ truck</span><i></i><em>0.09</em></p>
+          <p class="ai-in" style="--d: 2s"><span class="ai-3d-pink">→</span> king − man + woman ≈ queen: the pink dotted arrows point the same way</p>
+        </div>
+        <p class="ai-cap">
+          real vectors have hundreds of dimensions; this is a 3D view squeezed
+          down from them · similarity scores are made up
+        </p>
+      </div>
+      <p class="ai-mem">Vector = meaning turned into a point on a map.</p>
+
+      <h3 id="attention">4. Attention</h3>
+      <p class="ai-like">
+        <b>Like:</b> a noisy party. Twenty people are talking, but when someone
+        says your name, you tune in to that one voice.
+      </p>
+      <p>
+        When the model reads a word, attention lets it look back at every other
+        word and decide which ones matter for this one. In "The animal didn't
+        cross the street because <b>it</b> was too tired", the word "it" should
+        look hard at "animal", not "street".
+      </p>
+      <p>
+        Each word gives every other word a score, and the high scores shape its
+        meaning. Change "tired" to "wide" and "it" now points to "street".
+      </p>
+      <div
+        class="ai-viz"
+        role="img"
+        aria-label="In the sentence, the word 'it' highlights 'animal' strongly, 'tired' a little, and 'street' only faintly."
+      >
+        <p class="ai-att">
+          <span style="--a: 0.1">The</span>
+          <span style="--a: 1">animal</span>
+          <span style="--a: 0.05">didn't</span>
+          <span style="--a: 0.15">cross</span>
+          <span style="--a: 0.05">the</span>
+          <span style="--a: 0.25">street</span>
+          <span style="--a: 0.05">because</span>
+          <span class="ai-it">it</span>
+          <span style="--a: 0.1">was</span>
+          <span style="--a: 0.05">too</span>
+          <span style="--a: 0.5">tired</span>
+        </p>
+        <p class="ai-cap">
+          darker green = "it" pays more attention to that word
+        </p>
+      </div>
+      <p class="ai-mem">
+        Attention = each word asks "which words matter to me?"
+      </p>
+
+      <h3 id="self-supervised">5. Self-Supervised Learning</h3>
+      <p class="ai-like">
+        <b>Like:</b> covering a word in a book with your thumb, guessing it,
+        then lifting your thumb to check. No teacher needed, because the book is
+        the answer key.
+      </p>
+      <p>
+        Training needs a lot of examples with correct answers, and writing
+        billions of them by hand is impossible. The trick is to hide the next
+        word of real text and make the model guess it. The real word is the
+        right answer, so any text becomes free training data.
+      </p>
+      <p>
+        Wrong guess? The model's numbers get nudged a tiny bit. Repeat that
+        trillions of times. This first big stage is called
+        <b>pre-training</b>.
+      </p>
+      <div
+        class="ai-viz ai-fill"
+        role="img"
+        aria-label="Three sentences with a hidden last word. Each hidden word is revealed: blue, Paris, wet."
+      >
+        <p>The sky is <span class="ai-mask">blue</span></p>
+        <p>
+          The capital of France is
+          <span class="ai-mask" style="--d: 0.8s">Paris</span>
+        </p>
+        <p>
+          If it rains, the ground gets
+          <span class="ai-mask" style="--d: 1.6s">wet</span>
+        </p>
+        <p class="ai-cap">hide a word, guess, check. The text grades itself</p>
+      </div>
+      <p class="ai-mem">
+        The data labels itself: hide a word, guess it, check.
+      </p>
+
+      <h3 id="transformer">6. Transformer</h3>
+      <p class="ai-like">
+        <b>Like:</b> an office building where each floor reads the draft, adds
+        notes and sends it up. By the top floor, the meaning is very rich.
+      </p>
+      <p>
+        The transformer is the design behind almost every modern LLM. It came
+        from a 2017 Google paper called "Attention Is All You Need". Tokens
+        enter at the bottom as vectors. Each layer does two jobs:
+        <b>attention</b> (words look at each other), then a small
+        <b>feed-forward network</b> (each word thinks on its own).
+      </p>
+      <p>
+        Stack dozens of layers, and the top one gives scores for the next token.
+        The big win is that it reads all the words at once instead of one by
+        one, so it trains fast on GPUs. The "T" in GPT stands for Transformer.
+      </p>
+      <div
+        class="ai-viz"
+        role="img"
+        aria-label="A transformer drawn as a stack of blocks, read from the bottom up: input text, tokenizer, embedding, plus position, then a box repeated N times containing multi-head attention, add and norm, feed-forward, add and norm, with shortcut lines around attention and feed-forward. Then linear, softmax and the output word mat at 62 percent. A glowing dot carries the data up, each block lights up in turn, and a note with a small example explains each block."
+      >
+        <div class="ai-arch">
+          <div class="ai-arch-diagram">
+            <div class="ai-arch-b out last" style="--i: 10">next word: <b>mat</b> 62%</div>
+            <i class="ai-arch-hop" style="--i: 9"></i>
+            <div class="ai-arch-b soft" style="--i: 9">softmax</div>
+            <i class="ai-arch-hop" style="--i: 8"></i>
+            <div class="ai-arch-b lin" style="--i: 8">linear</div>
+            <i class="ai-arch-hop" style="--i: 7"></i>
+            <div class="ai-arch-layer">
+              <span class="ai-arch-n">× N layers</span>
+              <div class="ai-arch-res">
+                <div class="ai-arch-b norm" style="--i: 7">add &amp; norm</div>
+                <i class="ai-arch-hop" style="--i: 6"></i>
+                <div class="ai-arch-b ff" style="--i: 6">feed-forward</div>
+              </div>
+              <i class="ai-arch-hop" style="--i: 5"></i>
+              <div class="ai-arch-res">
+                <div class="ai-arch-b norm" style="--i: 5">add &amp; norm</div>
+                <i class="ai-arch-hop" style="--i: 4"></i>
+                <div class="ai-arch-b attn" style="--i: 4">multi-head attention</div>
+              </div>
+            </div>
+            <i class="ai-arch-hop" style="--i: 3"></i>
+            <div class="ai-arch-b pos" style="--i: 3">+ position</div>
+            <i class="ai-arch-hop" style="--i: 2"></i>
+            <div class="ai-arch-b emb" style="--i: 2">embedding</div>
+            <i class="ai-arch-hop" style="--i: 1"></i>
+            <div class="ai-arch-b tok" style="--i: 1">tokenizer</div>
+            <i class="ai-arch-hop" style="--i: 0"></i>
+            <div class="ai-arch-b inp" style="--i: 0"><span class="ai-arch-words"><span>The</span><span>cat</span><span>sat</span><span>on</span><span>the</span></span></div>
+            <p class="ai-arch-key">side lines = shortcuts (residual connections)</p>
+          </div>
+          <div class="ai-arch-notes">
+            <p class="ai-arch-head">what's happening</p>
+            <div class="ai-arch-stack">
+            <div class="ai-arch-note inp" style="--i: 0">
+              <b>1/11 · Input</b>
+              <p>The text so far. The model's only job is to guess the next word.</p>
+              <div class="ai-arch-demo"><span class="ai-d-pill">The</span><span class="ai-d-pill">cat</span><span class="ai-d-pill">sat</span><span class="ai-d-pill">on</span><span class="ai-d-pill">the</span><span class="ai-d-pill ghost">?</span></div>
+            </div>
+            <div class="ai-arch-note tok" style="--i: 1">
+              <b>2/11 · Tokenizer</b>
+              <p>The text is cut into tokens, and each token becomes an ID number (concept 2).</p>
+              <div class="ai-arch-demo"><span class="ai-d-tok"><span class="ai-d-pill">The</span><small>464</small></span><span class="ai-d-tok"><span class="ai-d-pill">cat</span><small>3797</small></span><span class="ai-d-tok"><span class="ai-d-pill">sat</span><small>3332</small></span><span class="ai-d-tok"><span class="ai-d-pill">on</span><small>319</small></span><span class="ai-d-tok"><span class="ai-d-pill">the</span><small>262</small></span></div><p class="ai-d-note">example IDs</p>
+            </div>
+            <div class="ai-arch-note emb" style="--i: 2">
+              <b>3/11 · Embedding</b>
+              <p>Each ID looks up its vector: a long list of numbers that holds its meaning (concept 3).</p>
+              <div class="ai-arch-demo col"><span class="ai-d-row"><span class="ai-d-w">The</span>→ <span class="ai-d-vec" style="--c: #b9a3ea"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></span><span class="ai-d-row"><span class="ai-d-w">cat</span>→ <span class="ai-d-vec" style="--c: #a6e3a1"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></span><span class="ai-d-row"><span class="ai-d-w">sat</span>→ <span class="ai-d-vec" style="--c: #f2c48d"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></span><span class="ai-d-note">… one per token · 768 numbers each in GPT-2 small (showing 8)</span></div>
+            </div>
+            <div class="ai-arch-note pos" style="--i: 3">
+              <b>4/11 · Position</b>
+              <p>A position signal is added to each vector, so the model knows "cat" comes before "sat". Attention alone can't tell word order.</p>
+              <div class="ai-arch-demo"><span class="ai-d-w">cat</span><span class="ai-d-vec" style="--c: #a6e3a1"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span>+</span><span class="ai-d-w">pos 2</span><span class="ai-d-vec" style="--c: #7fa7d9"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span>=</span><span class="ai-d-vec" style="--c: #c8d98a"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
+            </div>
+            <div class="ai-arch-note attn" style="--i: 4">
+              <b>5/11 · Multi-head attention</b>
+              <p>Every word looks at the earlier words and takes what it needs. Multi-head = several looks at once, each searching for something different.</p>
+              <div class="ai-arch-demo col"><span class="ai-d-note">"the" pays attention to:</span><span class="ai-d-bar" style="--j: 0; --w: 10%"><span>The</span><b></b><em>.10</em></span><span class="ai-d-bar" style="--j: 1; --w: 45%"><span>cat</span><b></b><em>.45</em></span><span class="ai-d-bar" style="--j: 2; --w: 30%"><span>sat</span><b></b><em>.30</em></span><span class="ai-d-bar" style="--j: 3; --w: 10%"><span>on</span><b></b><em>.10</em></span><span class="ai-d-bar" style="--j: 4; --w: 5%"><span>the</span><b></b><em>.05</em></span><span class="ai-d-note">GPT-2 small does this with 12 heads at once</span></div>
+            </div>
+            <div class="ai-arch-note norm" style="--i: 5">
+              <b>6/11 · Add &amp; norm</b>
+              <p>The result is added back to what came in (the shortcut line, so nothing is lost), then the numbers are rescaled to stay stable.</p>
+              <div class="ai-arch-demo"><span class="ai-d-w">in</span><span class="ai-d-vec" style="--c: #8fd3ec"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span>+</span><span class="ai-d-w">new</span><span class="ai-d-vec" style="--c: #c8d98a"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span>→ norm →</span><span class="ai-d-vec" style="--c: #d7d39b"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
+            </div>
+            <div class="ai-arch-note ff" style="--i: 6">
+              <b>7/11 · Feed-forward</b>
+              <p>Each word "thinks" on its own: a small network makes its vector about 4× wider, then shrinks it back. A lot of stored knowledge lives here.</p>
+              <div class="ai-arch-demo"><span class="ai-d-ff n8"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span>→</span><span class="ai-d-ff n32"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span>→</span><span class="ai-d-ff n8 out"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div><p class="ai-d-note">768 → 3072 → 768 numbers in GPT-2 small</p>
+            </div>
+            <div class="ai-arch-note norm" style="--i: 7">
+              <b>8/11 · Add &amp; norm</b>
+              <p>Shortcut and rescale again. That is one layer done. The whole dashed box repeats, 12 to 80+ times depending on the model.</p>
+              <div class="ai-arch-demo col"><span class="ai-d-layers"><i style="--j: 0">1</i><i style="--j: 1">2</i><i style="--j: 2">3</i><i style="--j: 3">4</i><i style="--j: 4">5</i><i style="--j: 5">6</i><i style="--j: 6">7</i><i style="--j: 7">8</i><i style="--j: 8">9</i><i style="--j: 9">10</i><i style="--j: 10">11</i><i style="--j: 11">12</i></span><span class="ai-d-note">layer 1 done, then the same box runs again… 12 times in GPT-2 small</span></div>
+            </div>
+            <div class="ai-arch-note lin" style="--i: 8">
+              <b>9/11 · Linear</b>
+              <p>The last word's final vector becomes one score for every token the model knows.</p>
+              <div class="ai-arch-demo col"><span class="ai-d-score"><span>mat</span><em>8.1</em></span><span class="ai-d-score"><span>sofa</span><em>7.0</em></span><span class="ai-d-score"><span>floor</span><em>6.2</em></span><span class="ai-d-score"><span>moon</span><em>4.7</em></span><span class="ai-d-score"><span>…</span><em></em></span><span class="ai-d-note">one raw score for each of 50,257 tokens</span></div>
+            </div>
+            <div class="ai-arch-note soft" style="--i: 9">
+              <b>10/11 · Softmax</b>
+              <p>The scores become percentages that add up to 100%.</p>
+              <div class="ai-arch-demo col"><span class="ai-d-bar win" style="--j: 0; --w: 62%"><span>mat</span><b></b><em>62%</em></span><span class="ai-d-bar" style="--j: 1; --w: 21%"><span>sofa</span><b></b><em>21%</em></span><span class="ai-d-bar" style="--j: 2; --w: 9%"><span>floor</span><b></b><em>9%</em></span><span class="ai-d-bar" style="--j: 3; --w: 2%"><span>moon</span><b></b><em>2%</em></span></div>
+            </div>
+            <div class="ai-arch-note out last" style="--i: 10">
+              <b>11/11 · Output</b>
+              <p>The model picks "mat" and adds it to the sentence.</p>
+              <div class="ai-arch-demo"><span class="ai-d-pill">The</span><span class="ai-d-pill">cat</span><span class="ai-d-pill">sat</span><span class="ai-d-pill">on</span><span class="ai-d-pill">the</span><span class="ai-d-pill mat">mat</span><span class="ai-d-note">↺ run again for the next word</span></div>
+            </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="ai-mem">
+        Transformer = attention + thinking, stacked many floors high.
+      </p>
+
+      <!-- ============ PART 2 ============ -->
+
+      <h2>Part 2: Making a Model Useful</h2>
+
+      <h3 id="fine-tuning">7. Fine-tuning</h3>
+      <p class="ai-like">
+        <b>Like:</b> a general doctor training to be a heart specialist. They
+        keep what they knew and get extra practice in one area.
+      </p>
+      <p>
+        A pre-trained model knows a little about everything. Fine-tuning trains
+        it some more on a smaller, focused set of examples, like your company's
+        support chats, legal Q&amp;As or code in your style.
+      </p>
+      <p>
+        The chat assistants you use were fine-tuned too, on "question → good
+        answer" examples. That's what turned a text continuer into a helper.
+        Cheaper methods like <b>LoRA</b> train only a small add-on instead of
+        every number in the model.
+      </p>
+      <div
+        class="ai-viz ai-tune"
+        role="img"
+        aria-label="Pages of legal examples flow into a base model, and its label changes from general to legal expert."
+      >
+        <span class="ai-chip">base model</span>
+        <div class="ai-pages">
+          <i class="ai-page" style="--i: 0"></i>
+          <i class="ai-page" style="--i: 1"></i>
+          <i class="ai-page" style="--i: 2"></i>
+        </div>
+        <span class="ai-swap">
+          <span class="ai-chip">general</span>
+          <span class="ai-chip">legal expert</span>
+        </span>
+      </div>
+      <p class="ai-mem">Fine-tuning = extra classes in one subject.</p>
+
+      <h3 id="few-shot">8. Few-shot Prompting</h3>
+      <p class="ai-like">
+        <b>Like:</b> showing a new co-worker three filled-in forms before asking
+        them to fill in the fourth.
+      </p>
+      <p>
+        Instead of retraining, you put a few examples right in your prompt. The
+        model spots the pattern and follows it. No examples is
+        <b>zero-shot</b>, one is <b>one-shot</b>, and a handful is
+        <b>few-shot</b>.
+      </p>
+      <p>
+        It's the quickest way to get a fixed format, tone or set of labels.
+        Nothing inside the model changes, and it forgets the examples after the
+        reply.
+      </p>
+      <div
+        class="ai-viz"
+        role="img"
+        aria-label="A prompt shows three reviews labelled positive or negative. For the fourth review, 'Cold and late', the model answers negative."
+      >
+        <div class="ai-term">
+          <p class="ai-in">"Loved every bite" → positive</p>
+          <p class="ai-in" style="--d: 0.6s">"Waste of money" → negative</p>
+          <p class="ai-in" style="--d: 1.2s">"Best pizza in town" → positive</p>
+          <p class="ai-in" style="--d: 1.8s">
+            "Cold and late" →
+            <span class="ai-ans ai-in" style="--d: 2.6s">negative</span>
+          </p>
+        </div>
+        <p class="ai-cap">three examples in, the model copies the pattern</p>
+      </div>
+      <p class="ai-mem">Show, don't tell: put 2 to 5 examples in the prompt.</p>
+
+      <h3 id="rag">9. Retrieval Augmented Generation (RAG)</h3>
+      <p class="ai-like">
+        <b>Like:</b> an open-book exam. Instead of answering from memory, the
+        student first finds the right page.
+      </p>
+      <p>
+        An LLM only knows what it saw in training. It doesn't know last week's
+        news or your company's documents. RAG fixes that in three steps:
+      </p>
+      <ol>
+        <li>
+          <b>Retrieve:</b> search your documents for parts related to the
+          question.
+        </li>
+        <li><b>Augment:</b> paste those parts into the prompt.</li>
+        <li>
+          <b>Generate:</b> the model answers using them and can say where the
+          answer came from.
+        </li>
+      </ol>
+      <p>You get fresher, more accurate answers without retraining anything.</p>
+      <div
+        class="ai-viz"
+        role="img"
+        aria-label="A question about the refund window. Two matching documents light up, get added to the prompt, and the model answers 30 days with the source."
+      >
+        <p class="ai-in">
+          <span class="ai-chip">What is our refund window?</span>
+        </p>
+        <div class="ai-shelf ai-in" style="--d: 0.4s">
+          <span class="ai-doc">pricing.md</span>
+          <span class="ai-doc hit">refund-policy.md</span>
+          <span class="ai-doc">team.md</span>
+          <span class="ai-doc hit">faq.md</span>
+          <span class="ai-doc">roadmap.md</span>
+        </div>
+        <p class="ai-step ai-in" style="--d: 1.4s">
+          <b>prompt:</b> question + 2 found parts
+        </p>
+        <p class="ai-step ai-in" style="--d: 2.2s">
+          <b>answer:</b> <span class="good">30 days from purchase</span>
+          (source: refund-policy.md)
+        </p>
+      </div>
+      <p class="ai-mem">RAG = look it up first, then answer.</p>
+
+      <h3 id="vector-db">10. Vector Database</h3>
+      <p class="ai-like">
+        <b>Like:</b> a library sorted by meaning instead of by title. Books
+        about the same idea sit on the same shelf, even if they use different
+        words.
+      </p>
+      <p>
+        RAG has to find related text fast. A vector database stores the
+        embedding (from concept 3) of every chunk of your documents. Your
+        question is turned into a vector too, and the database returns the
+        nearest ones, the <b>top k</b>.
+      </p>
+      <p>
+        So "how do I get my money back?" finds the "refund policy" chunk even
+        though they share no words. Popular options are pgvector (inside
+        Postgres), Pinecone, Qdrant, Chroma and Weaviate.
+      </p>
+      <div
+        class="ai-viz"
+        role="img"
+        aria-label="A question point sits in the middle of stored chunks. A circle grows around it and the three closest chunks light up green."
+      >
+        <div class="ai-map">
+          <span class="ai-ring"></span>
+          <span class="ai-dot ai-q" style="--x: 47%; --y: 46%"
+            >your question</span
+          >
+          <span class="ai-dot ai-near" style="--x: 38%; --y: 30%">refunds</span>
+          <span class="ai-dot ai-near" style="--x: 58%; --y: 60%">returns</span>
+          <span class="ai-dot ai-near" style="--x: 36%; --y: 64%">billing</span>
+          <span class="ai-dot ai-far" style="--x: 6%; --y: 8%">hiring</span>
+          <span class="ai-dot ai-far" style="--x: 80%; --y: 12%">logo</span>
+          <span class="ai-dot ai-far" style="--x: 8%; --y: 86%"
+            >office wifi</span
+          >
+          <span class="ai-dot ai-far" style="--x: 80%; --y: 86%">roadmap</span>
+        </div>
+        <p class="ai-cap">search = "give me the 3 closest points"</p>
+      </div>
+      <p class="ai-mem">Vector DB = search by meaning, not by keyword.</p>
+
+      <h3 id="mcp">11. Model Context Protocol (MCP)</h3>
+      <p class="ai-like">
+        <b>Like:</b> USB-C for AI. One port shape, and any charger, screen or
+        drive just works.
+      </p>
+      <p>
+        Before MCP, every AI app needed its own custom code for every tool: one
+        for GitHub, one for Slack, one for your database. MCP is an open
+        standard, released by Anthropic in November 2024, that gives them one
+        shared way to connect.
+      </p>
+      <p>
+        A tool is wrapped once as an <b>MCP server</b>, and any AI app that
+        speaks MCP (the <b>client</b>) can use it. A server can offer
+        <b>tools</b> (actions, like "create an issue"), <b>resources</b> (data
+        to read, like files) and <b>prompts</b> (ready-made templates).
+      </p>
+      <div
+        class="ai-viz ai-mcp"
+        role="img"
+        aria-label="One AI app connects through the same kind of plug to four MCP servers: GitHub, database, files and Slack. Messages travel along each wire in turn."
+      >
+        <div class="ai-hub">AI app<br />(client)</div>
+        <div class="ai-ports">
+          <div class="ai-port">
+            <span class="ai-wire" style="--i: 0"></span
+            ><span class="ai-chip">GitHub</span>
+          </div>
+          <div class="ai-port">
+            <span class="ai-wire" style="--i: 1"></span
+            ><span class="ai-chip">database</span>
+          </div>
+          <div class="ai-port">
+            <span class="ai-wire" style="--i: 2"></span
+            ><span class="ai-chip">files</span>
+          </div>
+          <div class="ai-port">
+            <span class="ai-wire" style="--i: 3"></span
+            ><span class="ai-chip">Slack</span>
+          </div>
+        </div>
+      </div>
+      <p class="ai-mem">MCP = one plug, many tools.</p>
+
+      <h3 id="context">12. Context Engineering</h3>
+      <p class="ai-like">
+        <b>Like:</b> packing a small suitcase for a trip. You can't take
+        everything, so you pick exactly what you'll need.
+      </p>
+      <p>
+        The <b>context window</b> is everything the model sees for one reply:
+        instructions, chat history, documents and tool results. It has a size
+        limit, and extra noise makes answers worse.
+      </p>
+      <p>
+        Prompt engineering is about how you word the question. Context
+        engineering is the bigger job of choosing <em>what goes in</em>: the
+        right documents, a short summary of old chat instead of the full log,
+        only the tools that apply. Then you leave the rest out. The term caught
+        on in 2025, helped along by Andrej Karpathy.
+      </p>
+      <div
+        class="ai-viz ai-ctx"
+        role="img"
+        aria-label="Items go into the context window: rules, the question, two relevant docs and a chat summary. A 300-page manual and last month's chat are crossed out and thrown away."
+      >
+        <p class="ai-item">system rules</p>
+        <p class="ai-item" style="--d: 0.5s">user's question</p>
+        <p class="ai-item junk" style="--d: 1s">whole 300-page manual</p>
+        <p class="ai-item" style="--d: 1.5s">2 relevant pages</p>
+        <p class="ai-item junk" style="--d: 2s">last month's full chat</p>
+        <p class="ai-item" style="--d: 2.5s">short chat summary</p>
+        <div class="ai-cap-bar"><b></b></div>
+        <p class="ai-cap">
+          window used: the right stuff fits, the noise stays out
+        </p>
+      </div>
+      <p class="ai-mem">Not more context. The right context.</p>
+
+      <!-- ============ PART 3 ============ -->
+
+      <h2>Part 3: Acting and Thinking</h2>
+
+      <h3 id="agents">13. Agents</h3>
+      <p class="ai-like">
+        <b>Like:</b> the difference between a friend who tells you how to book a
+        flight and an assistant who actually books it.
+      </p>
+      <p>
+        An agent is an LLM that works in a loop with tools. It gets a goal,
+        thinks of a next step, uses a tool (search the web, run code, call an
+        API), looks at the result and decides what to do next. It keeps going
+        until the job is done.
+      </p>
+      <p>
+        A chatbot answers. An agent acts. Many agents get their tools through
+        MCP.
+      </p>
+      <div
+        class="ai-viz"
+        role="img"
+        aria-label="A loop of think, act, observe, repeating. Below, tasks get checked off: search flights, check calendar, book the cheapest."
+      >
+        <div class="ai-loop">
+          <span class="ai-chip" style="--i: 0">think</span><span>→</span>
+          <span class="ai-chip" style="--i: 1">act</span><span>→</span>
+          <span class="ai-chip" style="--i: 2">observe</span><span>→</span>
+          <span class="ai-chip" style="--i: 3">repeat</span>
+        </div>
+        <div class="ai-tasks">
+          <p class="ai-in" style="--d: 0.5s">search flights to Chittagong</p>
+          <p class="ai-in" style="--d: 1.5s">check calendar for Friday</p>
+          <p class="ai-in" style="--d: 2.5s">book the cheapest seat</p>
+        </div>
+      </div>
+      <p class="ai-mem">Agent = LLM + tools + a loop.</p>
+
+      <h3 id="rl">14. Reinforcement Learning</h3>
+      <p class="ai-like">
+        <b>Like:</b> training a dog with treats. No one explains the rules. Good
+        moves get a treat, bad moves don't.
+      </p>
+      <p>
+        The model tries something, gets a reward score, and slowly shifts toward
+        actions that score higher. For chat models, people compare two answers
+        and pick the better one. That feedback trains a "reward model", and RL
+        pushes the LLM toward answers people prefer. This is called
+        <b>RLHF</b> (reinforcement learning from human feedback).
+      </p>
+      <p>
+        Newer models also get rewards from results you can check, like whether
+        the math answer is right or the code passes its tests.
+      </p>
+      <div
+        class="ai-viz ai-rl"
+        role="img"
+        aria-label="Two kinds of answers. The rude answer gets minus one and is picked less and less. The helpful answer gets plus one and is picked more and more."
+      >
+        <span>rude answer</span>
+        <div class="ai-bar">
+          <b></b><i class="bad">−1</i><i class="bad" style="--d: 1s">−1</i>
+        </div>
+        <span>helpful answer</span>
+        <div class="ai-bar win">
+          <b></b><i class="good" style="--d: 0.5s">+1</i
+          ><i class="good" style="--d: 1.5s">+1</i>
+        </div>
+      </div>
+      <p class="ai-mem">Try, get a score, do more of what scored well.</p>
+
+      <h3 id="cot">15. Chain of Thought</h3>
+      <p class="ai-like">
+        <b>Like:</b> showing your work in math class. Writing each step makes
+        you less likely to slip.
+      </p>
+      <p>
+        Chain of thought means getting the model to reason step by step before
+        the final answer. Each new token is based on the ones before it, so
+        writing out the steps gives the model room to think. This makes math and
+        logic answers much better. In early tests, just adding "Let's think step
+        by step" to a prompt was enough to help.
+      </p>
+      <p>
+        Try this one: a pen and a notebook cost $1.10 together. The notebook
+        costs $1.00 more than the pen. How much is the pen?
+      </p>
+      <div
+        class="ai-viz ai-two"
+        role="img"
+        aria-label="Answering straight away gives 10 cents, which is wrong. Step by step: pen is x, notebook is x plus 1, so 2x plus 1 equals 1.10, and x is 5 cents, which is right."
+      >
+        <div>
+          <p class="ai-head">answer right away</p>
+          <p class="ai-in" style="--d: 0.3s">
+            pen = <span class="bad">10¢ ✗</span>
+          </p>
+        </div>
+        <div>
+          <p class="ai-head">step by step</p>
+          <p class="ai-in" style="--d: 0.3s">pen = x</p>
+          <p class="ai-in" style="--d: 0.9s">notebook = x + 1.00</p>
+          <p class="ai-in" style="--d: 1.5s">2x + 1.00 = 1.10</p>
+          <p class="ai-in" style="--d: 2.1s">
+            pen = <span class="good">5¢ ✓</span>
+          </p>
+        </div>
+      </div>
+      <p class="ai-mem">Steps first, answer last.</p>
+
+      <h3 id="reasoning">16. Reasoning Models</h3>
+      <p class="ai-like">
+        <b>Like:</b> a chess player who thinks through moves before touching a
+        piece, compared with one who plays the first move that looks good.
+      </p>
+      <p>
+        Reasoning models, like OpenAI's o-series, DeepSeek-R1 and the "thinking"
+        modes in Claude and Gemini, are trained (mostly with RL from concept 14)
+        to write a long chain of thought on their own before answering. They try
+        an idea, check it and fix their mistakes.
+      </p>
+      <p>
+        They are slower and use more tokens, but they're much better at math,
+        code and multi-step problems. For "what's the capital of France?",
+        they're overkill.
+      </p>
+      <div
+        class="ai-viz"
+        role="img"
+        aria-label="A hidden thinking box scrolls through attempts: try 10 cents, check, wrong; try 5 cents, check, right. Then the final answer appears: 5 cents."
+      >
+        <p class="ai-cap">thinking<span class="ai-dots"></span></p>
+        <div class="ai-think">
+          <div class="ai-think-lines">
+            <p>maybe the pen is 10¢?</p>
+            <p>then notebook = $1.10, total $1.20… no</p>
+            <p>let pen = x, notebook = x + 1</p>
+            <p>2x + 1 = 1.10, so x = 0.05</p>
+            <p>check: 0.05 + 1.05 = 1.10 ✓</p>
+          </div>
+        </div>
+        <p class="ai-step ai-late">
+          <b>answer:</b> <span class="good">the pen costs 5¢</span>
+        </p>
+      </div>
+      <p class="ai-mem">
+        Reasoning model = chain of thought built in, trained by RL.
+      </p>
+
+      <!-- ============ PART 4 ============ -->
+
+      <h2>Part 4: Shapes and Sizes</h2>
+
+      <h3 id="multimodal">17. Multi-modal Models</h3>
+      <p class="ai-like">
+        <b>Like:</b> a person who can read, look and listen, not only read.
+      </p>
+      <p>
+        A multi-modal model takes in more than text: images, audio and sometimes
+        video. Some can also produce images or speech. Each kind of input is
+        turned into vectors in the same space, so the model can reason across
+        them.
+      </p>
+      <p>
+        You can send a screenshot and ask "what's wrong with this chart?", or
+        ask a spoken question about a photo.
+      </p>
+      <div
+        class="ai-viz ai-multi"
+        role="img"
+        aria-label="Text, an image and an audio clip all flow into one model."
+      >
+        <div class="ai-inputs">
+          <span class="ai-chip" style="--i: 0">text</span>
+          <span class="ai-chip" style="--i: 1">image</span>
+          <span class="ai-chip" style="--i: 2">audio</span>
+        </div>
+        <div class="ai-model">one<br />model</div>
+      </div>
+      <p class="ai-mem">Many senses, one brain.</p>
+
+      <h3 id="small">18. Small Language Models (SLMs)</h3>
+      <p class="ai-like">
+        <b>Like:</b> a pocket dictionary compared with a 30-volume encyclopedia.
+        It doesn't know everything, but it's fast and fits in your bag.
+      </p>
+      <p>
+        Small models have from a few hundred million to a few billion
+        parameters, like Phi, Gemma, Llama 3.2 (1B and 3B) and the small Qwen
+        models. They run on a laptop or phone, work offline, keep your data on
+        your device and cost far less.
+      </p>
+      <p>
+        They're great at focused jobs like sorting messages, autocomplete or
+        simple chat, especially after fine-tuning.
+      </p>
+      <div
+        class="ai-viz ai-size"
+        role="img"
+        aria-label="A small 3-billion-parameter model slides into a phone. A huge model that needs a data center shakes, because it does not fit."
+      >
+        <div class="ai-phone"><span class="ai-chip">3B</span></div>
+        <div class="ai-big">400B+ params<br />needs a data center</div>
+      </div>
+      <p class="ai-mem">
+        Small model = fast, cheap, private, good at one thing.
+      </p>
+
+      <h3 id="distillation">19. Distillation</h3>
+      <p class="ai-like">
+        <b>Like:</b> a top chef training an apprentice. The apprentice learns
+        not only the dish but the chef's judgment.
+      </p>
+      <p>
+        Distillation trains a small <b>student</b> model to copy a big
+        <b>teacher</b>. The student doesn't only learn the right answer. It
+        learns the teacher's full set of guesses, like "70% cat, 20% fox, 10%
+        dog". Those numbers carry extra hints, because a fox looks a bit like a
+        cat.
+      </p>
+      <p>
+        The result is a small model that keeps much of the big one's skill. Many
+        small models are made this way. Geoffrey Hinton's 2015 paper made the
+        idea popular.
+      </p>
+      <div
+        class="ai-viz ai-distill"
+        role="img"
+        aria-label="The teacher's guesses are cat 70, fox 20, dog 10 percent. The student's bars start wrong and grow to match the teacher's."
+      >
+        <div>
+          <p class="ai-head">teacher (big)</p>
+          <div class="ai-prob" style="--to: 70%"><span>cat</span><b></b></div>
+          <div class="ai-prob" style="--to: 20%"><span>fox</span><b></b></div>
+          <div class="ai-prob" style="--to: 10%"><span>dog</span><b></b></div>
+        </div>
+        <div class="ai-student">
+          <p class="ai-head">student (small)</p>
+          <div class="ai-prob" style="--from: 30%; --to: 70%">
+            <span>cat</span><b></b>
+          </div>
+          <div class="ai-prob" style="--from: 40%; --to: 20%">
+            <span>fox</span><b></b>
+          </div>
+          <div class="ai-prob" style="--from: 30%; --to: 10%">
+            <span>dog</span><b></b>
+          </div>
+        </div>
+      </div>
+      <p class="ai-mem">
+        Big teacher, small student. Copy the confidence, not just the answer.
+      </p>
+
+      <h3 id="quantization">20. Quantization</h3>
+      <p class="ai-like">
+        <b>Like:</b> rounding prices. $4.9873 becomes $4.99. It's a little less
+        exact, but much easier to handle.
+      </p>
+      <p>
+        A model's parameters are numbers, usually stored with 16 or 32 bits
+        each. Quantization stores them with fewer bits, often 8 or 4. A model
+        with 7 billion parameters needs about 28 GB at 32-bit, 14 GB at 16-bit,
+        7 GB at 8-bit and 3.5 GB at 4-bit.
+      </p>
+      <p>
+        It runs faster and fits on normal hardware, with a small drop in
+        quality. That's how people run models on their own computer with tools
+        like llama.cpp and Ollama.
+      </p>
+      <div
+        class="ai-viz ai-quant"
+        role="img"
+        aria-label="The same number stored with fewer bits: 32-bit, 16-bit, 8-bit, 4-bit. The model size bar shrinks from 28 to 14 to 7 to 3.5 gigabytes."
+      >
+        <div class="ai-num">
+          <span style="--i: 0">0.73519842 <small>32-bit · 28 GB</small></span>
+          <span style="--i: 1">0.7352 <small>16-bit · 14 GB</small></span>
+          <span style="--i: 2">0.735 <small>8-bit · 7 GB</small></span>
+          <span style="--i: 3">0.73 <small>4-bit · 3.5 GB</small></span>
+        </div>
+        <div class="ai-gb"><b></b></div>
+        <p class="ai-cap">
+          size of a 7B model. Less detail per number, much smaller file
+        </p>
+      </div>
+      <p class="ai-mem">Fewer bits per number = smaller, faster model.</p>
+
+      <!-- ============ WRAP UP ============ -->
+
+      <h2 id="together">How It All Fits Together</h2>
+      <p>Here's what happens when you ask an AI assistant a question:</p>
+      <ol>
+        <li>
+          Your text is cut into <b>tokens</b>, and each becomes a <b>vector</b>.
+        </li>
+        <li>
+          A <b>transformer</b> uses <b>attention</b> to work out what each word
+          means in context.
+        </li>
+        <li>
+          It was <b>pre-trained</b> by guessing hidden words, then
+          <b>fine-tuned</b> and polished with <b>RL</b> to act as a helpful
+          assistant.
+        </li>
+        <li>
+          Before it answers, the app does <b>context engineering</b>: it may use
+          <b>RAG</b> to pull your docs from a <b>vector database</b>, add
+          <b>few-shot</b> examples and connect tools through <b>MCP</b>.
+        </li>
+        <li>
+          An <b>agent</b> can loop: think, call a tool, check the result,
+          repeat. A <b>reasoning model</b> does a long
+          <b>chain of thought</b> first.
+        </li>
+        <li>
+          To run it on a phone, you take a <b>small model</b>, often made by
+          <b>distillation</b>, and shrink it with <b>quantization</b>.
+        </li>
+      </ol>
+
+      <h2 id="remember">Remember It Like This</h2>
+      <table>
+        <tr>
+          <th>Concept</th>
+          <th>Picture it as</th>
+        </tr>
+        <tr>
+          <td>LLM</td>
+          <td>Super autocomplete</td>
+        </tr>
+        <tr>
+          <td>Tokenization</td>
+          <td>Chopping vegetables</td>
+        </tr>
+        <tr>
+          <td>Vectors</td>
+          <td>GPS coordinates for meaning</td>
+        </tr>
+        <tr>
+          <td>Attention</td>
+          <td>Hearing your name at a party</td>
+        </tr>
+        <tr>
+          <td>Self-supervised</td>
+          <td>Cover a word, guess, check</td>
+        </tr>
+        <tr>
+          <td>Transformer</td>
+          <td>Office floors adding notes</td>
+        </tr>
+        <tr>
+          <td>Fine-tuning</td>
+          <td>Doctor becomes a specialist</td>
+        </tr>
+        <tr>
+          <td>Few-shot</td>
+          <td>Show 3 filled forms first</td>
+        </tr>
+        <tr>
+          <td>RAG</td>
+          <td>Open-book exam</td>
+        </tr>
+        <tr>
+          <td>Vector DB</td>
+          <td>Library sorted by meaning</td>
+        </tr>
+        <tr>
+          <td>MCP</td>
+          <td>USB-C for AI</td>
+        </tr>
+        <tr>
+          <td>Context engineering</td>
+          <td>Packing a small suitcase</td>
+        </tr>
+        <tr>
+          <td>Agents</td>
+          <td>Assistant who books the flight</td>
+        </tr>
+        <tr>
+          <td>RL</td>
+          <td>Dog training with treats</td>
+        </tr>
+        <tr>
+          <td>Chain of thought</td>
+          <td>Showing your work</td>
+        </tr>
+        <tr>
+          <td>Reasoning models</td>
+          <td>Chess player who thinks first</td>
+        </tr>
+        <tr>
+          <td>Multi-modal</td>
+          <td>Reads, sees and hears</td>
+        </tr>
+        <tr>
+          <td>Small models</td>
+          <td>Pocket dictionary</td>
+        </tr>
+        <tr>
+          <td>Distillation</td>
+          <td>Chef and apprentice</td>
+        </tr>
+        <tr>
+          <td>Quantization</td>
+          <td>Rounding prices</td>
+        </tr>
+      </table>
+
+      <h2 id="reading">Further Reading</h2>
+      <ul>
+        <li>
+          <a href="https://www.youtube.com/watch?v=ikdxxeIn4HQ"
+            >What Happens Inside an LLM? A Visual Breakdown</a
+          >
+        </li>
+        <li>
+          <a href="https://www.youtube.com/watch?v=OYvlznJ4IZQ"
+            >20 AI Concepts Explained in 40 Minutes</a
+          >: Gaurav Sen's video, which this list follows
+        </li>
+        <li>
+          <a href="https://www.youtube.com/watch?v=zjkBMFhNj_g"
+            >Intro to Large Language Models</a
+          >: Andrej Karpathy's one-hour talk
+        </li>
+        <li>
+          <a href="https://www.3blue1brown.com/topics/neural-networks"
+            >3Blue1Brown: Neural Networks</a
+          >: the best visual explanation of transformers and attention
+        </li>
+        <li>
+          <a href="https://jalammar.github.io/illustrated-transformer/"
+            >The Illustrated Transformer</a
+          >: Jay Alammar's picture-by-picture guide
+        </li>
+        <li>
+          Papers:
+          <a href="https://arxiv.org/abs/1706.03762"
+            >Attention Is All You Need</a
+          >,
+          <a href="https://arxiv.org/abs/2201.11903"
+            >Chain-of-Thought Prompting</a
+          >,
+          <a href="https://arxiv.org/abs/1503.02531"
+            >Distilling the Knowledge in a Neural Network</a
+          >
+        </li>
+        <li>
+          <a href="https://modelcontextprotocol.io">modelcontextprotocol.io</a>:
+          the official MCP docs
+        </li>
+        <li>
+          GitHub:
+          <a href="https://github.com/karpathy/nanoGPT">karpathy/nanoGPT</a>
+          and
+          <a href="https://github.com/rasbt/LLMs-from-scratch"
+            >rasbt/LLMs-from-scratch</a
+          >
+        </li>
+        <li>
+          Books: <em>Build a Large Language Model (From Scratch)</em> by
+          Sebastian Raschka, and <em>Hands-On Large Language Models</em> by Jay
+          Alammar and Maarten Grootendorst
+        </li>
+      </ul>
+
+      <p><a href="index.html">← all posts</a></p>
+    </article>
+  </body>
+</html>

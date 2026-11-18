@@ -1,0 +1,1725 @@
+/*
+  Styles for ai-concepts.html only. Every class starts with "ai-"
+  so nothing clashes with the other posts.
+
+  How the animations work (no JavaScript):
+  - .ai-in      fades a line in. --d sets WHEN it appears, so lines
+                show one after another, then all hide and the loop restarts.
+  - .ai-swap    two states on top of each other that take turns.
+  - Each diagram also has its own small @keyframes below.
+*/
+
+
+/* ---------- colors ---------- */
+
+.post {
+  --line: #333;
+  --muted: #777;
+  --bright: #eee;
+  --panel: #19191b;
+  --node: #232325;
+  --bad: #e06c6c;
+  --warn: #d9a75a;
+  --good: #7fbf7f;
+  --blue: #7fa7d9;
+}
+
+
+/* ---------- analogy line and "remember" line ---------- */
+
+.post .ai-like {
+  position: relative;
+  margin-top: 22px;
+  padding: 18px 14px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgb(251 191 36 / 0.08), transparent 60%);
+}
+
+/* the yellow "ANALOGY" badge on the top edge */
+.post .ai-like::before {
+  content: "analogy";
+  position: absolute;
+  top: -9px;
+  left: 12px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #fbbf24;
+  color: #1c1c1e;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.post .ai-like b {
+  color: #fbbf24;
+}
+
+.post .ai-mem {
+  color: var(--bright);
+  font-size: 13px;
+}
+
+.post .ai-mem::before {
+  content: "→ ";
+  color: var(--good);
+}
+
+.post h3[id] {
+  scroll-margin-top: 20px;
+}
+
+
+/* ---------- shared pieces ---------- */
+
+.ai-viz {
+  margin: 20px 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  font-size: 13px;
+  overflow: hidden;
+}
+
+.post .ai-viz p {
+  margin: 0;
+}
+
+.post .ai-cap {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.ai-chip {
+  display: inline-block;
+  padding: 3px 8px;
+  border: 1px solid var(--line);
+  background: var(--node);
+  color: var(--bright);
+}
+
+.ai-in {
+  animation: ai-in 10s var(--d, 0s) infinite both;
+}
+
+@keyframes ai-in {
+  0% { opacity: 0; transform: translateY(4px); }
+  4%, 70% { opacity: 1; transform: none; }
+  74%, 100% { opacity: 0; }
+}
+
+.ai-swap {
+  display: inline-grid;
+}
+
+.ai-swap > * {
+  grid-area: 1 / 1;
+  animation: ai-swap-a 6s infinite both;
+}
+
+.ai-swap > * + * {
+  animation-name: ai-swap-b;
+}
+
+@keyframes ai-swap-a {
+  0%, 45% { opacity: 1; }
+  50%, 95% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes ai-swap-b {
+  0%, 45% { opacity: 0; }
+  50%, 95% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.good { color: var(--good); }
+.bad { color: var(--bad); }
+
+
+/* ---------- 1. LLM: next word guesses ---------- */
+
+.ai-pick {
+  color: var(--good);
+  border-bottom: 1px dashed var(--good);
+  animation: ai-pick 6s infinite both;
+}
+
+@keyframes ai-pick {
+  0%, 55% { opacity: 0; }
+  62%, 92% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.ai-guess {
+  display: grid;
+  grid-template-columns: 48px 1fr 40px;
+  gap: 10px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.ai-guess b {
+  display: block;
+  height: 8px;
+  width: var(--w);
+  background: #555;
+  animation: ai-grow 6s calc(var(--i) * 0.3s) infinite both;
+}
+
+.ai-guess.top b {
+  background: var(--good);
+}
+
+.ai-guess em {
+  color: var(--muted);
+  font-style: normal;
+}
+
+@keyframes ai-grow {
+  0% { width: 0; }
+  30%, 92% { width: var(--w); }
+  100% { width: 0; }
+}
+
+
+/* ---------- 2. tokens: a word splits into pieces ---------- */
+
+.ai-split {
+  display: flex;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.ai-split span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 2px;
+  border: 1px solid transparent;
+  color: var(--bright);
+  animation: ai-split 6s infinite both;
+}
+
+.ai-split small {
+  color: var(--blue);
+  font-size: 11px;
+  animation: ai-id 6s infinite both;
+}
+
+@keyframes ai-split {
+  0%, 20% { margin: 0; border-color: transparent; background: none; }
+  35%, 90% { margin: 0 5px; border-color: var(--line); background: var(--node); }
+  100% { margin: 0; border-color: transparent; background: none; }
+}
+
+@keyframes ai-id {
+  0%, 40% { opacity: 0; }
+  50%, 88% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+
+/* ---------- 3. vectors in a turning 3D space ----------
+
+  .ai-3d-scene is a 3D box that spins slowly (rotateY).
+  Each word is .ai-3d-pt, placed with translate3d(--x, --y, --z).
+  Inside it, .ai-3d-face spins the other way, so the dot and the
+  label always face you. Shadows sit on the grid floor (y = 90px).
+*/
+
+.ai-3d {
+  position: relative;
+  height: 360px;
+  perspective: 800px;
+  overflow: hidden;
+}
+
+.ai-3d-scene {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  transform-style: preserve-3d;
+  transform: rotateX(-18deg) rotateY(-30deg);
+  scale: 1.25;
+  animation: ai-3d-spin 30s linear infinite;
+}
+
+@keyframes ai-3d-spin {
+  from { transform: rotateX(-18deg) rotateY(0deg); }
+  to { transform: rotateX(-18deg) rotateY(360deg); }
+}
+
+.ai-3d:hover .ai-3d-scene,
+.ai-3d:hover .ai-3d-face {
+  animation-play-state: paused;
+}
+
+.ai-3d-scene > * {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+/* grid floor */
+.ai-3d-floor {
+  width: 240px;
+  height: 240px;
+  margin: -120px 0 0 -120px;
+  background:
+    repeating-linear-gradient(0deg, rgb(127 167 217 / 0.18) 0 1px, transparent 1px 30px),
+    repeating-linear-gradient(90deg, rgb(127 167 217 / 0.18) 0 1px, transparent 1px 30px);
+  -webkit-mask-image: radial-gradient(circle, #000 45%, transparent 72%);
+  mask-image: radial-gradient(circle, #000 45%, transparent 72%);
+  transform: translateY(90px) rotateX(90deg);
+}
+
+/* group colors */
+.ai-3d .an { --h: #b9a3ea; }
+.ai-3d .fr { --h: var(--warn); }
+.ai-3d .ve { --h: var(--bad); }
+.ai-3d .pe { --h: #8fd3ec; }
+.ai-3d .pup { --h: var(--good); }
+
+/* a word: positioned in 3D */
+.ai-3d-pt {
+  transform-style: preserve-3d;
+  transform: translate3d(var(--x), var(--y), var(--z));
+}
+
+/* the part that always faces you: dot, drop line, label */
+.ai-3d-face {
+  position: absolute;
+  transform: rotateY(30deg) rotateX(18deg);
+  animation:
+    ai-3d-face 30s linear infinite,
+    ai-3d-show 10s var(--d, 0s) infinite both;
+}
+
+/* fade only, so it doesn't fight the facing rotation */
+@keyframes ai-3d-show {
+  0% { opacity: 0; }
+  4%, 70% { opacity: 1; }
+  74%, 100% { opacity: 0; }
+}
+
+@keyframes ai-3d-face {
+  from { transform: rotateY(0deg) rotateX(18deg); }
+  to { transform: rotateY(-360deg) rotateX(18deg); }
+}
+
+.ai-3d-face i {
+  position: absolute;
+  left: -5px;
+  top: -5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff, var(--h) 55%);
+  box-shadow: 0 0 10px var(--h);
+}
+
+/* thin line from the dot down toward the floor */
+.ai-3d-face::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 5px;
+  width: 1px;
+  height: calc(85px - var(--y));
+  background: linear-gradient(color-mix(in srgb, var(--h) 60%, transparent), transparent);
+}
+
+.ai-3d-face b {
+  position: absolute;
+  left: 9px;
+  top: -9px;
+  color: var(--bright);
+  font-size: 11px;
+  font-weight: normal;
+  white-space: nowrap;
+  text-shadow: 0 0 4px #000;
+}
+
+/* soft shadow on the floor under each word */
+.ai-3d-shadow {
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border-radius: 50%;
+  background: radial-gradient(color-mix(in srgb, var(--h) 55%, transparent), transparent 70%);
+  transform: translate3d(var(--x), 90px, var(--z)) rotateX(90deg);
+}
+
+/* puppy flies in from far away and lands next to dog */
+.ai-3d-pt.pup {
+  animation: ai-3d-fly 10s infinite both;
+}
+
+.ai-3d-pt.pup .ai-3d-face {
+  animation: ai-3d-face 30s linear infinite;
+}
+
+@keyframes ai-3d-fly {
+  0%, 28% { transform: translate3d(150px, -150px, 150px); opacity: 0; }
+  32% { opacity: 1; }
+  50%, 70% { transform: translate3d(var(--x), var(--y), var(--z)); opacity: 1; }
+  74%, 100% { transform: translate3d(var(--x), var(--y), var(--z)); opacity: 0; }
+}
+
+.ai-3d-pt.pup .ai-3d-face i::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border: 1px solid var(--good);
+  border-radius: 50%;
+  animation: ai-ping 10s infinite both;
+}
+
+/* small markers: axis dots and the pink arrow dots.
+   They face you like the words do, so nothing gets cut off. */
+.ai-3d-pt.mark .ai-3d-face {
+  animation: ai-3d-face 30s linear infinite;
+}
+
+.ai-3d-pt.mark .ai-3d-face::after {
+  display: none;
+}
+
+.ai-3d-pt.ax .ai-3d-face i {
+  left: -1px;
+  top: -1px;
+  width: 2px;
+  height: 2px;
+  background: var(--muted);
+  box-shadow: none;
+}
+
+.ai-3d-pt.ax.lab .ai-3d-face b {
+  left: -3px;
+  top: -8px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.ai-3d-pt.arr .ai-3d-face i {
+  left: -2px;
+  top: -2px;
+  width: 4px;
+  height: 4px;
+  background: #f49ac1;
+  box-shadow: 0 0 6px #f49ac1;
+}
+
+.ai-3d-pt.arr.end .ai-3d-face i {
+  left: -4px;
+  top: -4px;
+  width: 8px;
+  height: 8px;
+}
+
+.ai-3d-pink {
+  color: #f49ac1;
+}
+
+.post .ai-3d-hint {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.ai-3d-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 6px;
+  font-size: 11px;
+}
+
+.ai-3d-legend span {
+  color: var(--muted);
+}
+
+.ai-3d-legend span::before {
+  content: "●";
+  margin-right: 4px;
+  color: var(--h);
+}
+
+/* numbers and similarity scores under the 3D view */
+.ai-3d-read {
+  display: grid;
+  gap: 6px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--line);
+  font-size: 12px;
+}
+
+.post .ai-3d-read p {
+  color: #bbb;
+}
+
+.ai-3d-read b {
+  color: #b9a3ea;
+  font-weight: normal;
+}
+
+.ai-3d-read small {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.post .ai-3d-sim {
+  display: grid;
+  grid-template-columns: 110px 1fr 36px;
+  gap: 8px;
+  align-items: center;
+}
+
+.ai-3d-sim i {
+  display: block;
+  height: 7px;
+  width: var(--w);
+  border-radius: 999px;
+  background: var(--good);
+  animation: ai-3d-sim 10s calc(0.8s + var(--j) * 0.25s) infinite both;
+}
+
+.ai-3d-sim.far i {
+  background: var(--bad);
+}
+
+.ai-3d-sim em {
+  color: var(--muted);
+  font-style: normal;
+}
+
+@keyframes ai-3d-sim {
+  0% { width: 0; }
+  5%, 70% { width: var(--w); }
+  74%, 100% { width: 0; }
+}
+
+
+/* ---------- 3 and 10. meaning map with dots ---------- */
+
+.ai-map {
+  position: relative;
+  height: 200px;
+  border-left: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.ai-dot {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--bright);
+  font-size: 12px;
+  animation: ai-in 10s var(--d, 0s) infinite both;
+}
+
+.ai-dot::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--c, var(--blue));
+}
+
+.ai-fly {
+  animation: ai-fly 10s infinite both;
+}
+
+@keyframes ai-fly {
+  0%, 25% { opacity: 0; transform: translate(140px, 90px); }
+  30% { opacity: 1; transform: translate(140px, 90px); }
+  50%, 70% { opacity: 1; transform: none; }
+  74%, 100% { opacity: 0; transform: none; }
+}
+
+/* vector database: a circle grows around the question */
+
+.ai-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 150px;
+  height: 150px;
+  margin: -75px 0 0 -75px;
+  border: 1px dashed var(--good);
+  border-radius: 50%;
+  animation: ai-ring 6s infinite both;
+}
+
+@keyframes ai-ring {
+  0%, 15% { transform: scale(0); opacity: 0; }
+  45%, 85% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1); opacity: 0; }
+}
+
+.ai-map .ai-q {
+  --c: var(--warn);
+  animation: none;
+}
+
+.ai-map .ai-near {
+  animation: ai-near 6s infinite both;
+}
+
+@keyframes ai-near {
+  0%, 40% { --c: #555; color: var(--muted); }
+  48%, 90% { --c: var(--good); color: var(--good); }
+  100% { --c: #555; color: var(--muted); }
+}
+
+.ai-map .ai-far {
+  --c: #555;
+  color: var(--muted);
+  animation: none;
+}
+
+
+/* ---------- 4. attention: "it" looks back ---------- */
+
+.ai-att {
+  line-height: 2.4;
+  font-size: 14px;
+  text-align: center;
+}
+
+.ai-att span {
+  padding: 3px 4px;
+  color: var(--bright);
+  animation: ai-look 6s infinite both;
+}
+
+.ai-att .ai-it {
+  outline: 1px solid var(--warn);
+  color: var(--warn);
+  animation: none;
+}
+
+@keyframes ai-look {
+  0%, 20% { background: transparent; }
+  40%, 85% { background: rgb(127 191 127 / calc(var(--a) * 0.75)); }
+  100% { background: transparent; }
+}
+
+
+/* ---------- 5. self-supervised: hidden words get revealed ---------- */
+
+.post .ai-fill p + p {
+  margin-top: 8px;
+}
+
+.ai-mask {
+  padding: 0 4px;
+  animation: ai-mask 8s var(--d, 0s) infinite both;
+}
+
+@keyframes ai-mask {
+  0%, 25% { color: transparent; background: #555; }
+  32%, 80% { color: var(--good); background: transparent; }
+  88%, 100% { color: transparent; background: #555; }
+}
+
+
+/* ---------- 6. transformer: architecture diagram ----------
+
+  Read from the bottom up, like the original paper's figure.
+  11 blocks, each gets 1.8s in turn (22s loop): the block with --i: n
+  lights up at n * 1.8s, and the note with the same --i shows beside it.
+  .ai-arch-hop is the short line between blocks with a dot running up it.
+*/
+
+.ai-arch {
+  display: grid;
+  grid-template-columns: minmax(200px, 260px) 1fr;
+  gap: 20px;
+  align-items: center;
+}
+
+.ai-arch-diagram {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* one block */
+.ai-arch-b {
+  padding: 6px 10px;
+  border: 1px solid color-mix(in srgb, var(--h) 45%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--h) 8%, transparent);
+  color: var(--bright);
+  font-size: 12px;
+  text-align: center;
+  animation: ai-arch-lit 22s calc(var(--i) * 1.8s) infinite both;
+}
+
+.ai-arch-b.last {
+  animation-name: ai-arch-lit-last;
+}
+
+/* block colors */
+.inp, .tok { --h: #9a9aa5; }
+.emb, .pos { --h: #ee8f98; }
+.attn { --h: #f2c48d; }
+.norm { --h: #e5d27a; }
+.ff { --h: #8fd3ec; }
+.lin { --h: #b9a3ea; }
+.soft, .out { --h: #a6e3a1; }
+
+.ai-arch-b b {
+  color: var(--good);
+}
+
+.ai-arch-words {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.ai-arch-words span {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--node);
+}
+
+@keyframes ai-arch-lit {
+  0% { border-color: color-mix(in srgb, var(--h) 45%, transparent); background: color-mix(in srgb, var(--h) 8%, transparent); box-shadow: none; transform: none; }
+  1%, 7.5% { border-color: var(--h); background: color-mix(in srgb, var(--h) 30%, transparent); box-shadow: 0 0 14px color-mix(in srgb, var(--h) 60%, transparent); transform: scale(1.04); }
+  8.5%, 100% { border-color: color-mix(in srgb, var(--h) 45%, transparent); background: color-mix(in srgb, var(--h) 8%, transparent); box-shadow: none; transform: none; }
+}
+
+/* the output block stays lit until the loop restarts */
+@keyframes ai-arch-lit-last {
+  0% { border-color: color-mix(in srgb, var(--h) 45%, transparent); background: color-mix(in srgb, var(--h) 8%, transparent); box-shadow: none; transform: none; }
+  1%, 17% { border-color: var(--h); background: color-mix(in srgb, var(--h) 30%, transparent); box-shadow: 0 0 14px color-mix(in srgb, var(--h) 60%, transparent); transform: scale(1.04); }
+  18.5%, 100% { border-color: color-mix(in srgb, var(--h) 45%, transparent); background: color-mix(in srgb, var(--h) 8%, transparent); box-shadow: none; transform: none; }
+}
+
+/* the line between two blocks, with a dot that runs up it
+   just before the next block lights up */
+.ai-arch-hop {
+  position: relative;
+  width: 2px;
+  height: 16px;
+  margin: 0 auto;
+  background: var(--line);
+}
+
+.ai-arch-hop::after {
+  content: "";
+  position: absolute;
+  left: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 8px #fff, 0 0 14px var(--blue);
+  animation: ai-arch-hop 22s calc(var(--i) * 1.8s + 1.3s) infinite both;
+}
+
+@keyframes ai-arch-hop {
+  0% { bottom: -4px; opacity: 0; }
+  0.5% { opacity: 1; }
+  2% { bottom: calc(100% - 4px); opacity: 1; }
+  2.5%, 100% { bottom: calc(100% - 4px); opacity: 0; }
+}
+
+/* the repeated box around attention and feed-forward */
+.ai-arch-layer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 10px 10px;
+  border: 1px dashed var(--muted);
+  border-radius: 10px;
+}
+
+/* a group of blocks with a shortcut line on its right side:
+   it starts below the lower block and comes back in at add & norm */
+.ai-arch-res {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin-right: 16px;
+}
+
+.ai-arch-res::after {
+  content: "";
+  position: absolute;
+  top: 12px;
+  bottom: -8px;
+  right: -14px;
+  width: 12px;
+  border: 1px solid var(--muted);
+  border-left: none;
+  border-radius: 0 6px 6px 0;
+}
+
+/* arrow head where the shortcut joins add & norm */
+.ai-arch-res::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  right: -3px;
+  border: 4px solid transparent;
+  border-right-color: var(--muted);
+  border-left: 0;
+}
+
+.post .ai-arch-key {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 10px;
+  text-align: center;
+}
+
+.ai-arch-n {
+  position: absolute;
+  top: -9px;
+  right: 10px;
+  padding: 0 6px;
+  background: var(--panel);
+  color: var(--warn);
+  font-size: 11px;
+  animation: ai-arch-n 22s infinite both;
+}
+
+/* "× N layers" pulses while the data is inside the box */
+@keyframes ai-arch-n {
+  0%, 32% { color: var(--muted); }
+  33%, 64% { color: var(--warn); text-shadow: 0 0 8px var(--warn); }
+  65%, 100% { color: var(--muted); }
+}
+
+/* notes on the right: one per block, same timing */
+.ai-arch-notes {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--node);
+}
+
+.post .ai-arch-head {
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.ai-arch-stack {
+  flex: 1;
+  display: grid;
+  align-items: center;
+}
+
+.ai-arch-note {
+  grid-area: 1 / 1;
+  animation: ai-arch-note 22s calc(var(--i) * 1.8s) infinite both;
+}
+
+.ai-arch-note.last {
+  animation-name: ai-arch-note-last;
+}
+
+.ai-arch-note > b {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--h);
+  font-size: 13px;
+}
+
+.post .ai-arch-note p {
+  color: var(--bright);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+@keyframes ai-arch-note {
+  0% { opacity: 0; transform: translateY(4px); }
+  1%, 7.8% { opacity: 1; transform: none; }
+  8.2%, 100% { opacity: 0; }
+}
+
+@keyframes ai-arch-note-last {
+  0% { opacity: 0; transform: translateY(4px); }
+  1%, 17.5% { opacity: 1; transform: none; }
+  18.5%, 100% { opacity: 0; }
+}
+
+/* ---- the small example inside each note ---- */
+
+.ai-arch-demo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.ai-arch-demo.col {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.post .ai-arch-note .ai-d-note,
+.ai-d-note {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.ai-d-pill {
+  padding: 2px 6px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  color: var(--bright);
+}
+
+.ai-d-pill.ghost {
+  border-style: dashed;
+  color: var(--muted);
+}
+
+.ai-d-pill.mat {
+  border-color: var(--good);
+  color: var(--good);
+  box-shadow: 0 0 10px rgb(127 191 127 / 0.5);
+}
+
+.ai-d-tok {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.ai-d-tok small {
+  color: var(--blue);
+  font-size: 10px;
+}
+
+.ai-d-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ai-d-w {
+  min-width: 34px;
+  color: var(--bright);
+}
+
+/* a vector: 8 cells, shades from nth-child */
+.ai-d-vec {
+  display: inline-flex;
+  gap: 1px;
+}
+
+.ai-d-vec i {
+  width: 7px;
+  height: 13px;
+  background: color-mix(in srgb, var(--c) calc(var(--k) * 100%), #1a1a1d);
+}
+
+.ai-d-vec i:nth-child(1) { --k: 0.9; }
+.ai-d-vec i:nth-child(2) { --k: 0.4; }
+.ai-d-vec i:nth-child(3) { --k: 0.7; }
+.ai-d-vec i:nth-child(4) { --k: 0.2; }
+.ai-d-vec i:nth-child(5) { --k: 0.8; }
+.ai-d-vec i:nth-child(6) { --k: 0.5; }
+.ai-d-vec i:nth-child(7) { --k: 0.3; }
+.ai-d-vec i:nth-child(8) { --k: 0.6; }
+
+/* bars that grow while their note is showing */
+.ai-d-bar {
+  display: grid;
+  grid-template-columns: 40px 1fr 34px;
+  gap: 8px;
+  align-items: center;
+}
+
+.ai-d-bar span {
+  color: var(--bright);
+}
+
+.ai-d-bar b {
+  display: block;
+  height: 7px;
+  width: var(--w);
+  border-radius: 999px;
+  background: var(--warn);
+  animation: ai-d-grow 22s calc(var(--i) * 1.8s + var(--j) * 0.1s) infinite both;
+}
+
+.soft .ai-d-bar b {
+  background: var(--blue);
+}
+
+.soft .ai-d-bar.win b {
+  background: var(--good);
+}
+
+.ai-d-bar em {
+  font-style: normal;
+}
+
+@keyframes ai-d-grow {
+  0% { width: 0; }
+  3%, 100% { width: var(--w); }
+}
+
+/* feed-forward: narrow → wide → narrow */
+.ai-d-ff {
+  display: inline-flex;
+  gap: 1px;
+}
+
+.ai-d-ff i {
+  width: 5px;
+  height: 13px;
+  background: #8fd3ec;
+}
+
+.ai-d-ff.n32 i {
+  width: 3px;
+  animation: ai-d-flick 0.5s infinite alternate;
+}
+
+.ai-d-ff.n32 i:nth-child(odd) {
+  background: #b9a3ea;
+  animation-delay: -0.25s;
+}
+
+.ai-d-ff.out i {
+  background: #a6e3a1;
+}
+
+@keyframes ai-d-flick {
+  from { opacity: 0.3; }
+  to { opacity: 1; }
+}
+
+/* layer counter: 12 boxes fill one after another */
+.ai-d-layers {
+  display: flex;
+  gap: 3px;
+}
+
+.ai-d-layers i {
+  flex: 1;
+  padding: 2px 0;
+  border-radius: 3px;
+  background: var(--node);
+  color: var(--muted);
+  font-size: 9px;
+  font-style: normal;
+  text-align: center;
+  animation: ai-d-layer 22s calc(var(--i) * 1.8s + var(--j) * 0.1s) infinite both;
+}
+
+@keyframes ai-d-layer {
+  0% { background: var(--node); color: var(--muted); }
+  0.5%, 100% { background: #e5d27a; color: #1c1c1e; }
+}
+
+/* raw scores before softmax */
+.ai-d-score {
+  display: flex;
+  justify-content: space-between;
+  max-width: 160px;
+}
+
+.ai-d-score span {
+  color: var(--bright);
+}
+
+.ai-d-score em {
+  color: #b9a3ea;
+  font-style: normal;
+}
+
+
+
+/* ---------- 7. fine-tuning: pages flow into the model ---------- */
+
+.ai-tune {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ai-pages {
+  position: relative;
+  flex: 1;
+  height: 24px;
+  border-bottom: 1px dashed var(--line);
+}
+
+.ai-page {
+  position: absolute;
+  left: 0;
+  top: 2px;
+  width: 14px;
+  height: 18px;
+  background: var(--bright);
+  animation: ai-page 3s calc(var(--i) * 1s) infinite both;
+}
+
+@keyframes ai-page {
+  0% { left: 0; opacity: 0; }
+  10% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { left: calc(100% - 14px); opacity: 0; }
+}
+
+.ai-tune .ai-swap span:last-child {
+  color: var(--good);
+  border-color: var(--good);
+}
+
+
+/* ---------- 8, 15, 16. prompt box ---------- */
+
+.ai-term {
+  padding: 12px 14px;
+  background: #141415;
+  border: 1px solid var(--line);
+  line-height: 1.9;
+}
+
+.post .ai-term p {
+  color: #bbb;
+}
+
+.ai-term .ai-ans {
+  color: var(--good);
+}
+
+
+/* ---------- 9. RAG ---------- */
+
+.ai-shelf {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0;
+}
+
+.ai-doc {
+  padding: 3px 6px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.ai-doc.hit {
+  animation: ai-hit 10s infinite both;
+}
+
+@keyframes ai-hit {
+  0%, 12% { border-color: var(--line); color: var(--muted); }
+  18%, 70% { border-color: var(--good); color: var(--good); }
+  74%, 100% { border-color: var(--line); color: var(--muted); }
+}
+
+.post .ai-step {
+  margin-top: 8px;
+}
+
+.ai-step b {
+  color: var(--warn);
+}
+
+
+/* ---------- 11. MCP: one hub, many tools ---------- */
+
+.ai-mcp {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.ai-hub {
+  padding: 18px 10px;
+  border: 1px solid var(--warn);
+  color: var(--warn);
+  text-align: center;
+}
+
+.ai-ports {
+  flex: 1;
+  display: grid;
+  gap: 8px;
+}
+
+.ai-port {
+  display: flex;
+  align-items: center;
+}
+
+.ai-wire {
+  position: relative;
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.ai-wire::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--good);
+  animation: ai-wire 4s calc(var(--i) * 1s) infinite both;
+}
+
+@keyframes ai-wire {
+  0% { left: 0; opacity: 0; }
+  5% { opacity: 1; }
+  25% { left: calc(100% - 7px); }
+  45% { left: 0; opacity: 1; }
+  50%, 100% { left: 0; opacity: 0; }
+}
+
+.ai-port .ai-chip {
+  min-width: 90px;
+}
+
+
+/* ---------- 12. context window ---------- */
+
+.ai-ctx {
+  display: grid;
+  gap: 6px;
+}
+
+.post .ai-item {
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--good);
+  color: var(--bright);
+  animation: ai-in 10s var(--d, 0s) infinite both;
+}
+
+.post .ai-item.junk {
+  border-left-color: var(--bad);
+  color: var(--bad);
+  animation-name: ai-junk;
+}
+
+@keyframes ai-junk {
+  0% { opacity: 0; text-decoration: none; }
+  4%, 12% { opacity: 1; text-decoration: none; transform: none; }
+  18%, 70% { opacity: 0.35; text-decoration: line-through; transform: translateX(16px); }
+  74%, 100% { opacity: 0; }
+}
+
+.ai-cap-bar {
+  height: 6px;
+  margin-top: 6px;
+  background: var(--node);
+}
+
+.ai-cap-bar b {
+  display: block;
+  height: 100%;
+  background: var(--warn);
+  animation: ai-fill 10s infinite both;
+}
+
+@keyframes ai-fill {
+  0% { width: 0; }
+  50%, 70% { width: 65%; }
+  74%, 100% { width: 0; }
+}
+
+
+/* ---------- 13. agent loop ---------- */
+
+.ai-loop {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+}
+
+.ai-loop .ai-chip {
+  animation: ai-turn 4s calc(var(--i) * 1s) infinite both;
+}
+
+.ai-loop span {
+  color: var(--muted);
+}
+
+@keyframes ai-turn {
+  0%, 22% { border-color: var(--good); color: var(--good); }
+  25%, 100% { border-color: var(--line); color: var(--bright); }
+}
+
+.ai-tasks {
+  margin-top: 14px;
+}
+
+.post .ai-tasks p {
+  color: var(--bright);
+}
+
+.post .ai-tasks p::before {
+  content: "✓ ";
+  color: var(--good);
+}
+
+
+/* ---------- 14. reinforcement learning ---------- */
+
+.ai-rl {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 10px 12px;
+  align-items: center;
+}
+
+.ai-bar {
+  position: relative;
+  height: 12px;
+  background: var(--node);
+}
+
+.ai-bar b {
+  display: block;
+  height: 100%;
+  background: var(--bad);
+  animation: ai-less 8s infinite both;
+}
+
+.ai-bar.win b {
+  background: var(--good);
+  animation-name: ai-more;
+}
+
+@keyframes ai-less {
+  0% { width: 50%; }
+  85%, 100% { width: 10%; }
+}
+
+@keyframes ai-more {
+  0% { width: 50%; }
+  85%, 100% { width: 90%; }
+}
+
+.ai-bar i {
+  position: absolute;
+  right: 0;
+  top: -4px;
+  font-style: normal;
+  font-size: 12px;
+  animation: ai-reward 2s var(--d, 0s) infinite both;
+}
+
+@keyframes ai-reward {
+  0% { opacity: 0; transform: none; }
+  20% { opacity: 1; }
+  60%, 100% { opacity: 0; transform: translateY(-14px); }
+}
+
+
+/* ---------- 15. chain of thought: quick vs step by step ---------- */
+
+.ai-two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.ai-two > div {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  line-height: 1.8;
+}
+
+.post .ai-two .ai-head {
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+
+/* ---------- 16. reasoning: hidden thinking scrolls by ---------- */
+
+.ai-think {
+  height: 92px;
+  padding: 8px 12px;
+  border: 1px dashed var(--line);
+  overflow: hidden;
+}
+
+.ai-think-lines {
+  animation: ai-scroll 10s infinite both;
+}
+
+.post .ai-think-lines p {
+  color: var(--muted);
+  font-style: italic;
+  line-height: 1.9;
+}
+
+@keyframes ai-scroll {
+  0% { transform: translateY(0); opacity: 1; }
+  60% { transform: translateY(-110px); opacity: 1; }
+  70%, 100% { transform: translateY(-110px); opacity: 0; }
+}
+
+.ai-late {
+  animation: ai-late 10s infinite both;
+}
+
+@keyframes ai-late {
+  0%, 62% { opacity: 0; }
+  66%, 95% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.ai-dots::after {
+  content: "";
+  animation: ai-dots 1.5s steps(4) infinite;
+}
+
+@keyframes ai-dots {
+  0% { content: ""; }
+  25% { content: "."; }
+  50% { content: ".."; }
+  75% { content: "..."; }
+}
+
+
+/* ---------- 17. multimodal: inputs flow into one model ---------- */
+
+.ai-multi {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ai-inputs {
+  display: grid;
+  gap: 8px;
+  flex: 1;
+}
+
+.ai-inputs .ai-chip {
+  justify-self: start;
+  animation: ai-feed 6s calc(var(--i) * 0.6s) infinite both;
+}
+
+@keyframes ai-feed {
+  0% { opacity: 0; transform: none; }
+  10%, 30% { opacity: 1; transform: none; }
+  55%, 100% { opacity: 0; transform: translateX(80px); }
+}
+
+.ai-model {
+  padding: 18px 12px;
+  border: 1px solid var(--blue);
+  color: var(--blue);
+  text-align: center;
+}
+
+
+/* ---------- 18. small model fits in a phone ---------- */
+
+.ai-size {
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+}
+
+.ai-phone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 70px;
+  height: 120px;
+  border: 2px solid var(--muted);
+  border-radius: 10px;
+}
+
+.ai-phone .ai-chip {
+  border-color: var(--good);
+  color: var(--good);
+  animation: ai-slide 6s infinite both;
+}
+
+@keyframes ai-slide {
+  0%, 10% { transform: translateX(120px); opacity: 0; }
+  20% { opacity: 1; }
+  45%, 90% { transform: none; opacity: 1; }
+  100% { transform: none; opacity: 0; }
+}
+
+.ai-big {
+  padding: 30px 10px;
+  border: 1px solid var(--bad);
+  color: var(--bad);
+  text-align: center;
+  animation: ai-shake 6s infinite both;
+}
+
+@keyframes ai-shake {
+  0%, 60% { transform: none; }
+  63% { transform: translateX(-6px); }
+  66% { transform: translateX(6px); }
+  69% { transform: translateX(-4px); }
+  72%, 100% { transform: none; }
+}
+
+
+/* ---------- 19. distillation: student bars copy the teacher ---------- */
+
+.ai-distill {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.post .ai-distill .ai-head {
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.ai-prob {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 8px;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.ai-prob b {
+  display: block;
+  height: 8px;
+  width: var(--to);
+  background: var(--blue);
+}
+
+.ai-student b {
+  background: var(--good);
+  animation: ai-learn 6s infinite both;
+}
+
+@keyframes ai-learn {
+  0%, 10% { width: var(--from); }
+  70%, 92% { width: var(--to); }
+  100% { width: var(--from); }
+}
+
+
+/* ---------- 20. quantization: fewer bits, smaller model ---------- */
+
+.ai-quant {
+  text-align: center;
+}
+
+.ai-num {
+  display: inline-grid;
+  font-size: 18px;
+  color: var(--bright);
+}
+
+.ai-num span {
+  grid-area: 1 / 1;
+  animation: ai-four 8s calc(var(--i) * 2s) infinite both;
+}
+
+.ai-num small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+@keyframes ai-four {
+  0% { opacity: 0; }
+  3%, 22% { opacity: 1; }
+  25%, 100% { opacity: 0; }
+}
+
+.ai-gb {
+  height: 14px;
+  margin: 14px auto 6px;
+  background: var(--node);
+}
+
+.ai-gb b {
+  display: block;
+  height: 100%;
+  background: var(--warn);
+  animation: ai-shrink 8s infinite both;
+}
+
+@keyframes ai-shrink {
+  0%, 22% { width: 100%; }
+  25%, 47% { width: 50%; }
+  50%, 72% { width: 25%; }
+  75%, 97% { width: 12.5%; }
+  100% { width: 100%; }
+}
+
+
+/* ---------- table of contents and author box ---------- */
+
+.toc {
+  margin: 24px 0;
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.post .toc p {
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.post .toc ol {
+  margin: 0;
+  padding-left: 26px;
+  columns: 2;
+  column-gap: 24px;
+  font-size: 13px;
+}
+
+.post .toc li {
+  break-inside: avoid;
+}
+
+.post .toc a {
+  border-bottom: none;
+}
+
+.author {
+  margin: 48px 0 24px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--bright);
+  background: var(--panel);
+}
+
+.post .author p {
+  margin: 0;
+  font-size: 13px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+
+/* ---------- phones ---------- */
+
+@media (max-width: 500px) {
+  .ai-3d {
+    height: 300px;
+  }
+
+  .ai-3d-scene {
+    top: 44%;
+    scale: 0.95;
+  }
+
+  .post .ai-3d-sim {
+    grid-template-columns: 96px 1fr 32px;
+  }
+
+  .ai-arch {
+    grid-template-columns: 1fr;
+  }
+
+  /* on phones the note goes above the diagram */
+  .ai-arch-notes {
+    order: -1;
+  }
+
+  .post .toc ol {
+    columns: 1;
+  }
+
+  .ai-two,
+  .ai-distill {
+    grid-template-columns: 1fr;
+  }
+
+  .ai-port .ai-chip {
+    min-width: 0;
+  }
+
+  .ai-hub,
+  .ai-model {
+    padding: 12px 6px;
+    font-size: 11px;
+  }
+
+  .ai-split {
+    font-size: 13px;
+  }
+}
+
+
+/* ---------- people who turned off motion see the final picture ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-viz *,
+  .ai-viz *::before,
+  .ai-viz *::after {
+    animation: none !important;
+  }
+
+  .ai-swap > :first-child,
+  .ai-num span:not(:last-child),
+  .ai-wire::after,
+  .ai-page,
+  .ai-arch-note:not(.last),
+  .ai-arch-hop::after,
+  .ai-ring {
+    display: none;
+  }
+
+  .ai-mask {
+    color: var(--good);
+  }
+
+  .post .ai-item.junk {
+    opacity: 0.35;
+    text-decoration: line-through;
+  }
+}
